@@ -1,6 +1,7 @@
 /** @format */
 
 const Invoice = require("../database/invoice");
+const { generateDate } = require("../helpers/functions");
 const AllowedList = ["CBC", "RBC", "XRAY", "ECG"];
 
 // Create a new invoice
@@ -11,7 +12,7 @@ const CreateInvoice = async (req, res, next) => {
     const invoice = new Invoice(patientData, invoiceData);
     const invoiceId = await Invoice.insertOne(invoice);
     if (invoiceId) {
-      res.status(201).send({ success: true, msg: "Invoice created", statusCode: 201 });
+      res.status(201).send({ success: true, msg: "Invoice created", invoiceId, date: generateDate(), statusCode: 201 });
     } else {
       throw new Error("Could not create a new invoice @statusCode 500");
     }

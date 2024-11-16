@@ -3,9 +3,12 @@
 const { ObjectId } = require("mongodb");
 
 const { getClient } = require("./connection");
+const { generateInvoiceId } = require("../helpers/functions");
 
 class Invoice {
   constructor(patientData, invoiceData) {
+    const invoiceId = generateInvoiceId();
+    this.invoiceId = invoiceId;
     this.name = patientData.name;
     this.age = patientData.age;
     this.gender = patientData.gender;
@@ -14,6 +17,7 @@ class Invoice {
     this.referrerId = invoiceData.referrerId;
     this.total = invoiceData.total;
     this.discount = invoiceData.discount;
+    this.discountType = invoiceData.discountType;
     this.paid = invoiceData.paid;
     this.testList = invoiceData.testList;
     this.notified = false;
@@ -25,7 +29,7 @@ class Invoice {
     try {
       const db = getClient();
       const result = await db.collection("collection-1").insertOne(doc);
-      return result.insertedId ? result.insertedId : null;
+      return result.insertedId ? doc.invoiceId : null;
     } catch (e) {
       return handleError(e, "insertOne");
     }

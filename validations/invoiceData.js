@@ -26,6 +26,12 @@ const validateDiscount = body("invoiceData.discount")
   .isFloat({ min: 0 })
   .withMessage("Discount must be a valid number greater than or equal to 0.");
 
+  // Discount Type
+const validateDiscountType = body('invoiceData.discountType')
+.optional()
+.isIn(['fixed', 'percentage'])
+.withMessage('Discount Type is not correct.');
+
 const validatePaid = body("invoiceData.paid")
   .exists()
   .withMessage("Paid status is required.") // Check for existence and non-empty
@@ -48,12 +54,13 @@ const validateTestList = body("invoiceData.testList")
   });
 
 // Combine all validations into a reusable array
-const invoiceValidationRules = [validateReferrerId, validateTotal, validateDiscount, validatePaid, validateTestList];
+const invoiceValidationRules = [validateReferrerId, validateTotal, validateDiscount, validateDiscountType, validatePaid, validateTestList];
 
 module.exports = {
   validateReferrerId,
   validateTotal,
   validateDiscount,
+  validateDiscountType,
   validatePaid,
   validateTestList,
   invoiceValidationRules, // Export the combined rules
