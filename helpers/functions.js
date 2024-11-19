@@ -8,13 +8,13 @@ const generateInvoiceId = () => {
   const timeString = now.toTimeString().split(" ")[0]; // Extract time part
   console.log("Time (HH:MM:SS):", timeString);
 
-  // Format with date and time (YYYY-MM-DD HH:MM:SS)
-  const id = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(
-    2,
-    "0"
-  )}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(
+  // Format with date and time (YY-MM-DD HH:MM:SS)
+  const id = `${String(now.getFullYear() % 100).padStart(2, "0")}${String(now.getMonth() + 1).padStart(2, "0")}${String(
+    now.getDate()
+  ).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(
     now.getSeconds()
   ).padStart(2, "0")}`;
+
   return id;
 };
 

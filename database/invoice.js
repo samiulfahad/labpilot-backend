@@ -16,6 +16,7 @@ class Invoice {
     this.doctorName = patientData.doctorName;
     this.referrerId = invoiceData.referrerId;
     this.total = invoiceData.total;
+    this.netAmount = invoiceData.netAmount;
     this.discount = invoiceData.discount;
     this.discountType = invoiceData.discountType;
     this.paid = invoiceData.paid;
@@ -52,11 +53,14 @@ class Invoice {
       const projection = {
         invoiceId: 1,
         name: 1,
+        contact:1,
         netAmount: 1,
         paid: 1,
+        testList:1,
         completed: 1,
         delivered: 1,
         notified: 1,
+
       };
       const invoices = await db.collection("collection-1").find({}).project(projection).toArray();
       const total = await db.collection("collection-1").countDocuments();

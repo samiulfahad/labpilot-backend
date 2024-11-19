@@ -2,7 +2,7 @@
 
 const { body } = require("express-validator");
 
-// Validate referrerId 
+// Validate referrerId
 const validateReferrerId = body("invoiceData.referrerId")
   .exists({ checkFalsy: true })
   .withMessage("Referrer ID is required.") // Check for existence and non-empty
@@ -11,8 +11,6 @@ const validateReferrerId = body("invoiceData.referrerId")
   .isLength({ max: 50 })
   .withMessage("Referrer ID must not exceed 50 characters.");
 
-
-
 // Total: required, must be a valid number
 const validateTotal = body("invoiceData.total")
   .exists({ checkFalsy: true })
@@ -20,17 +18,23 @@ const validateTotal = body("invoiceData.total")
   .isFloat({ min: 0 })
   .withMessage("Total must be a valid number greater than or equal to 0.");
 
+const validateNetAmount = body("invoiceData.total")
+  .exists({ checkFalsy: true })
+  .withMessage("Net amount is required.") // Check for existence and non-empty
+  .isFloat({ min: 0 })
+  .withMessage("net amount must be a valid number greater than or equal to 0.");
+
 // Discount: optional, must be a valid number
 const validateDiscount = body("invoiceData.discount")
   .optional()
   .isFloat({ min: 0 })
   .withMessage("Discount must be a valid number greater than or equal to 0.");
 
-  // Discount Type
-const validateDiscountType = body('invoiceData.discountType')
-.optional()
-.isIn(['fixed', 'percentage'])
-.withMessage('Discount Type is not correct.');
+// Discount Type
+const validateDiscountType = body("invoiceData.discountType")
+  .optional()
+  .isIn(["fixed", "percentage"])
+  .withMessage("Discount Type is not correct.");
 
 const validatePaid = body("invoiceData.paid")
   .exists()
@@ -54,11 +58,20 @@ const validateTestList = body("invoiceData.testList")
   });
 
 // Combine all validations into a reusable array
-const invoiceValidationRules = [validateReferrerId, validateTotal, validateDiscount, validateDiscountType, validatePaid, validateTestList];
+const invoiceValidationRules = [
+  validateReferrerId,
+  validateTotal,
+  validateNetAmount,
+  validateDiscount,
+  validateDiscountType,
+  validatePaid,
+  validateTestList,
+];
 
 module.exports = {
   validateReferrerId,
   validateTotal,
+  validateNetAmount,
   validateDiscount,
   validateDiscountType,
   validatePaid,
