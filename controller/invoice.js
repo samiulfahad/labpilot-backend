@@ -55,6 +55,11 @@ const NotifyPatient = async (req, res, next) => {
 const Update = async (req, res, next) => {
   try {
     let result = null;
+
+    if (req.body.update === "paid") {
+      result = await Invoice.updateById(req.body._id, "paid");
+    }
+
     if (req.body.update === "delivered") {
       result = await Invoice.updateById(req.body._id, { delivered: true });
     }
@@ -63,8 +68,8 @@ const Update = async (req, res, next) => {
       result = await Invoice.updateById(req.body._id, { notified: true });
     }
 
-    if (result) {
-      res.status(201).send({ success: true });
+    if (result.success) {
+      res.status(200).send({ success: true });
     } else {
       throw new Error("Could not update delivery status @statusCode 500");
     }

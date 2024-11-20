@@ -5,6 +5,12 @@ const { ObjectId } = require("mongodb");
 const { getClient } = require("./connection");
 const { generateInvoiceId } = require("../helpers/functions");
 
+const handleError = (e, methodName) => {
+  console.log(`${methodName} produced an error`);
+  console.log(e);
+  return null;
+};
+
 class Invoice {
   constructor(patientData, invoiceData) {
     const invoiceId = generateInvoiceId();
@@ -53,14 +59,13 @@ class Invoice {
       const projection = {
         invoiceId: 1,
         name: 1,
-        contact:1,
+        contact: 1,
         netAmount: 1,
         paid: 1,
-        testList:1,
+        testList: 1,
         completed: 1,
         delivered: 1,
         notified: 1,
-
       };
       const invoices = await db.collection("collection-1").find({}).project(projection).toArray();
       const total = await db.collection("collection-1").countDocuments();
@@ -88,12 +93,32 @@ class Invoice {
     try {
       const db = getClient();
       const filter = { _id: new ObjectId(_id) };
-      const result = await db.collection("collection-1").updateOne(filter, { $set: update });
-      if (result.modifiedCount === 0) {
-        return null;
-      } else if (result.modifiedCount === 1) {
-        return true;
+
+      if (update === "paid") {
+        // Fetch the document to get the current netAmount
+        const document = await db.collection("collection-1").findOne(filter);
+        if (!document) {
+          return { success: false, message: "Document not found" };
+        }
+
+        // Update the paid field to match netAmount
+        const result = await db.collection("collection-1").updateOne(filter, {
+          $set: { paid: document.netAmount },
+        });
+
+        return result.modifiedCount === 1
+          ? { success: true, message: "Paid amount updated successfully" }
+          : { success: false, message: "Update failed" };
       }
+
+      // Generic update logic for other updates
+      const result = await db.collection("collection-1").updateOne(filter, {
+        $set: update,
+      });
+
+      return result.modifiedCount === 1
+        ? { success: true, message: "Document updated successfully" }
+        : { success: false, message: "Update failed" };
     } catch (e) {
       return handleError(e, "updateById");
     }
@@ -114,11 +139,5 @@ class Invoice {
     }
   }
 }
-
-const handleError = (e, methodName) => {
-  console.log(`${methodName} produced an error`);
-  console.log(e);
-  return null;
-};
 
 module.exports = Invoice;
