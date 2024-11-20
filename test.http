@@ -38,6 +38,6 @@ PUT http://localhost:3000/api/v1/invoice/update HTTP/1.1
 content-type: application/json
 
 {
-   "update": "paida",
-   "_id": "673dd92243bffccbbe6ed30a"
+   "update": "paid",
+   "_id": "673dd92243bfcbbe6eda"
 }

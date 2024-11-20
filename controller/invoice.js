@@ -5,7 +5,7 @@ const { generateDate } = require("../helpers/functions");
 const AllowedList = ["CBC", "RBC", "XRAY", "ECG"];
 
 // Create a new invoice
-const CreateInvoice = async (req, res, next) => {
+const createInvoice = async (req, res, next) => {
   try {
     const { patientData, invoiceData } = req.body;
     console.log(patientData);
@@ -24,7 +24,7 @@ const CreateInvoice = async (req, res, next) => {
 };
 
 // All invoices
-const GetAllInvoices = async (req, res, next) => {
+const getAllInvoices = async (req, res, next) => {
   try {
     const result = await Invoice.findAll();
     if (result) {
@@ -38,7 +38,7 @@ const GetAllInvoices = async (req, res, next) => {
 };
 
 // Send SMS to Patient
-const NotifyPatient = async (req, res, next) => {
+const notifyPatient = async (req, res, next) => {
   try {
     const result = await Invoice.updateByInvoiceId(req.body.invoiceId, { notified: true });
     if (result) {
@@ -52,26 +52,42 @@ const NotifyPatient = async (req, res, next) => {
 };
 
 // Update invoice
-const Update = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
+    const { _id, update } = req.body;
+
+    // Input validation
+    if (!_id || !update) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
+    }
+
+    // Validate update fields
+    if (!["payment", "reportDelivery", "notified"].includes(update)) {
+      return res.status(400).send({ success: false, msg: "Invalid update type" });
+    }
+
     let result = null;
 
-    if (req.body.update === "paid") {
+    // Update paid amount
+    if (req.body.update === "payment") {
       result = await Invoice.updateById(req.body._id, "paid");
     }
-
-    if (req.body.update === "delivered") {
-      result = await Invoice.updateById(req.body._id, { delivered: true });
+    
+    // Update delivery status
+    if (req.body.update === "reportDelivery") {
+      result = await Invoice.updateById(req.body._id, "delivered");
     }
 
+    // Update notified
     if (req.body.update === "notified") {
       result = await Invoice.updateById(req.body._id, { notified: true });
     }
 
-    if (result.success) {
-      res.status(200).send({ success: true });
+    // Sending back response
+    if (result && result.success) {
+      res.status(200).send({ success: true, message: "Updated" });
     } else {
-      throw new Error("Could not update delivery status @statusCode 500");
+      res.status(400).send({ success: false, message: "Failed to update" });
     }
   } catch (e) {
     next(e);
@@ -79,7 +95,7 @@ const Update = async (req, res, next) => {
 };
 
 // Drop a collection
-const DropCollection = async (req, res, next) => {
+const dropCollection = async (req, res, next) => {
   try {
     const result = await Invoice.dropCollection();
     if (result) {
@@ -92,4 +108,4 @@ const DropCollection = async (req, res, next) => {
   }
 };
 
-module.exports = { CreateInvoice, GetAllInvoices, NotifyPatient, Update, DropCollection };
+module.exports = { createInvoice, getAllInvoices, notifyPatient, update, dropCollection };

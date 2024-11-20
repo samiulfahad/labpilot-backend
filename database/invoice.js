@@ -6,8 +6,9 @@ const { getClient } = require("./connection");
 const { generateInvoiceId } = require("../helpers/functions");
 
 const handleError = (e, methodName) => {
+  console.log("Error in database operation");
   console.log(`${methodName} produced an error`);
-  console.log(e);
+  // console.log(e);
   return null;
 };
 
@@ -25,9 +26,11 @@ class Invoice {
     this.netAmount = invoiceData.netAmount;
     this.discount = invoiceData.discount;
     this.discountType = invoiceData.discountType;
+    this.labAdjustment = invoiceData.labAdjustment;
     this.paid = invoiceData.paid;
     this.testList = invoiceData.testList;
     this.notified = false;
+    this.delivered = false;
     this.labId = "bhaluka123";
   }
 
@@ -92,22 +95,30 @@ class Invoice {
   static async updateById(_id, update) {
     try {
       const db = getClient();
+
+      if (!ObjectId.isValid(_id)) {
+        throw new Error("Invalid ID format");
+      }
       const filter = { _id: new ObjectId(_id) };
 
       if (update === "paid") {
-        // Fetch the document to get the current netAmount
-        const document = await db.collection("collection-1").findOne(filter);
-        if (!document) {
-          return { success: false, message: "Document not found" };
-        }
-
-        // Update the paid field to match netAmount
-        const result = await db.collection("collection-1").updateOne(filter, {
-          $set: { paid: document.netAmount },
-        });
-
+        const result = await db.collection("collection-1").updateOne(filter, [{ $set: { paid: "$netAmount" } }]);
         return result.modifiedCount === 1
-          ? { success: true, message: "Paid amount updated successfully" }
+          ? { success: true, message: "Payment amount updated successfully" }
+          : { success: false, message: "Update failed" };
+      }
+
+      if (update === "delivered") {
+        const result = await db.collection("collection-1").updateOne(filter, { $set: { delivered: true } });
+        return result.modifiedCount === 1
+          ? { success: true, message: "Report Delivery status updated successfully" }
+          : { success: false, message: "Update failed" };
+      }
+
+      if (update === "notified") {
+        const result = await db.collection("collection-1").updateOne(filter, { $set: { notified: true } });
+        return result.modifiedCount === 1
+          ? { success: true, message: "Notified status updated successfully" }
           : { success: false, message: "Update failed" };
       }
 

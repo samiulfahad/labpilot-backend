@@ -24,15 +24,15 @@ app.post(
   patientValidationRules,
   invoiceValidationRules,
   handleValidationErrors,
-  invoiceController.CreateInvoice
+  invoiceController.createInvoice
 );
-app.get("/api/v1/invoice/all", invoiceController.GetAllInvoices);
-app.get("/api/v1/invoice/clear", invoiceController.DropCollection);
-app.put("/api/v1/invoice/update", invoiceController.Update);
+app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
+app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
+app.put("/api/v1/invoice/update", invoiceController.update);
 
 // Error Handling Center
 app.use((err, req, res, next) => {
-  console.log(err);
+  // console.log(err);
   let errMsg = err.message;
   let statusCode = 500;
   if (err.message.includes("@statusCode")) {
@@ -41,6 +41,8 @@ app.use((err, req, res, next) => {
     statusCode = parseInt(statusCode);
   }
   console.log("Centrall Error handling Starting..........");
+  console.log(errMsg);
+  console.log('Details error');
   console.log(err);
   console.log("Centrall Error handling Ending..........");
   res.status(statusCode).send({ success: false, message: errMsg, statusCode });
