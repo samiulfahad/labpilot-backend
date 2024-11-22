@@ -32,6 +32,14 @@ content-type: application/json
 }
 
 
+###
+GET http://localhost:3000/api/v1/invoice HTTP/1.1
+content-type: application/json
+
+{
+   "_id": "673e338edc8fb8f1995d12ec"
+}
+
 
 ###
 PUT http://localhost:3000/api/v1/invoice/update HTTP/1.1

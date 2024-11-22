@@ -1,12 +1,13 @@
 /** @format */
 
 const express = require("express");
-const cors = require("cors")
+const cors = require("cors");
 
 const invoiceController = require("./controller/invoice");
 const { connect } = require("./database/connection");
 
 const { patientValidationRules } = require("./validations/patientData");
+const {validateName, validateContact} = require("./validations/patientData");
 const { invoiceValidationRules } = require("./validations/invoiceData");
 const handleValidationErrors = require("./validations/handleValidationErrors");
 
@@ -14,7 +15,7 @@ const app = express();
 
 //Middlewares
 app.use(express.json({ limit: "10kb" }));
-app.use(cors())
+app.use(cors());
 
 app.get("/", (req, res, next) => {
   res.status(200).send({ success: true, msg: "Server is running" });
@@ -26,9 +27,10 @@ app.post(
   handleValidationErrors,
   invoiceController.createInvoice
 );
+app.get("/api/v1/invoice", invoiceController.getInvoiceById);
 app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
-app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 app.put("/api/v1/invoice/update", invoiceController.update);
+app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
 // Error Handling Center
 app.use((err, req, res, next) => {
@@ -42,7 +44,7 @@ app.use((err, req, res, next) => {
   }
   console.log("Centrall Error handling Starting..........");
   console.log(errMsg);
-  console.log('Details error');
+  console.log("Details error");
   console.log(err);
   console.log("Centrall Error handling Ending..........");
   res.status(statusCode).send({ success: false, message: errMsg, statusCode });
