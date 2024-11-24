@@ -28,9 +28,9 @@ const createInvoice = async (req, res, next) => {
     const invoice = new Invoice(patientData, invoiceData);
     const invoiceId = await Invoice.insertOne(invoice);
     if (invoiceId) {
-      res.status(201).send({ success: true, msg: "Invoice created", invoiceId });
+      return res.status(201).send({ success: true, msg: "Invoice created", invoiceId });
     } else {
-      throw new Error("Could not create a new invoice @statusCode 500");
+      return res.status(400).send({success: false})
     }
     // Create Uploadable Tests
     // CreateTest("bhaluka123", invoiceId, filteredTestList)

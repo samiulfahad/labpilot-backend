@@ -1,15 +1,11 @@
-# POST https://example.com/comments HTTP/1.1
-# content-type: application/json
-
-# {
-#     "name": "sample",
-#     "time": "Wed, 21 Oct 2015 18:27:50 GMT"
-# }
 
 GET http://localhost:3000
 
-###
 
+####### USER ######
+
+###
+GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
 
 POST http://localhost:3000/api/v1/invoice/new HTTP/1.1
 content-type: application/json
@@ -48,4 +44,30 @@ content-type: application/json
 {
    "update": "paid",
    "_id": "673dd92243bfcbbe6eda"
+}
+
+###
+GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
+
+
+
+######## ADMIN ########
+
+###
+GET http://localhost:3000/api/v1/global/test/all HTTP/1.1
+
+
+
+
+###
+POST http://localhost:3000/api/v1/global/test/add HTTP/1.1
+content-type: application/json
+
+{
+   "name": "Colonoscopy",
+   "code": "colonoscopy",
+   "description": "description for XRay",
+   "type": 2,
+   "format": "standard"
+
 }

@@ -4,10 +4,13 @@ const express = require("express");
 const cors = require("cors");
 
 const invoiceController = require("./controller/invoice");
+const globalTestController = require("./controller/admin");
+const userController = require("./controller/user");
+
 const { connect } = require("./database/connection");
 
 const { patientValidationRules } = require("./validations/patientData");
-const {validateName, validateContact} = require("./validations/patientData");
+const { validateName, validateContact } = require("./validations/patientData");
 const { invoiceValidationRules } = require("./validations/invoiceData");
 const handleValidationErrors = require("./validations/handleValidationErrors");
 
@@ -31,6 +34,22 @@ app.get("/api/v1/invoice", invoiceController.getInvoiceById);
 app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
 app.put("/api/v1/invoice/update", invoiceController.update);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
+
+app.get("/api/v1/global/test/all", globalTestController.getAllGlobalTest);
+app.post("/api/v1/global/test/add", globalTestController.createGlobalTest);
+
+app.get("/api/v1/user/test/all", userController.getTestList);
+
+
+// 404 Not Found Handler
+app.use((req, res, next) => {
+  res.status(404).send({
+    success: false,
+    message: "The requested resource was not found on this server.",
+    statusCode: 404,
+  });
+});
+
 
 // Error Handling Center
 app.use((err, req, res, next) => {
