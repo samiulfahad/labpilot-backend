@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 const invoiceController = require("./controller/invoice");
-const globalTestController = require("./controller/admin");
+const systemController = require("./controller/system");
 const userController = require("./controller/user");
 
 const { connect } = require("./database/connection");
@@ -35,10 +35,11 @@ app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
 app.put("/api/v1/invoice/update", invoiceController.update);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
-app.get("/api/v1/global/test/all", globalTestController.getAllGlobalTest);
-app.post("/api/v1/global/test/add", globalTestController.createGlobalTest);
+app.get("/api/v1/global/test/all", systemController.getAllTest);
+app.post("/api/v1/global/test/add", systemController.postTest);
 
 app.get("/api/v1/user/test/all", userController.getTestList);
+app.put("/api/v1/user/testlist/update", userController.putTestList);
 
 
 // 404 Not Found Handler

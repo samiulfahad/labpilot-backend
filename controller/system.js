@@ -1,28 +1,27 @@
 /** @format */
 
-const GlobalTest = require("../database/admin");
+const System = require("../database/system");
 
-const createGlobalTest = async (req, res, next) => {
+const postTest = async (req, res, next) => {
   const { name, code, description, type, format } = req.body;
   if (!name || !code || !description || !type) {
     return res.status(400).send({ success: false, msg: "Required field missing" });
   }
   try {
-    const test = new GlobalTest(name, code, description, type, format);
-    const result = await GlobalTest.insertOne(test);
+    const result = await System.createTest(name, code, description, type, format)
     if (result) {
       return res.status(201).send({ success: true });
     } else {
-      throw new Error("Could not create a new global test @statusCode 500");
+      return res.status(400).send({ success: false });
     }
   } catch (e) {
     next(e);
   }
 };
 
-const getAllGlobalTest = async (req, res, next) => {
+const getAllTest = async (req, res, next) => {
   try {
-    const result = await GlobalTest.findAll();
+    const result = await System.findAllTest();
     if (result.success) {
       return res.status(200).send({ success: true, list: result.list });
     } else {
@@ -33,4 +32,4 @@ const getAllGlobalTest = async (req, res, next) => {
   }
 };
 
-module.exports = { createGlobalTest, getAllGlobalTest };
+module.exports = { postTest, getAllTest };

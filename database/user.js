@@ -26,9 +26,35 @@ class User {
 
       return result.testList ? result.testList : null; // Return the testList array or an empty array if not found
     } catch (e) {
-      return handleError(e, "testList => GlobalTest");
+      return handleError(e, "testList => User");
     }
   }
+
+
+
+static async updateTestList(userId, testList) {
+  try {
+    const db = getClient(); // Assumes getClient() initializes the MongoDB connection
+
+    // Update the user's testList
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) }, // Filter: find the user by ID
+      { $set: { testList: testList } } // Update operation
+    );
+
+    // Check if the update was successful
+    if (result.matchedCount === 0) {
+      return null; // No document found with the given userId
+    }
+
+    return true; // Successfully updated
+  } catch (e) {
+    return handleError(e, "testList => User");
+  }
+}
+
+  
+
 }
 
 module.exports = User;

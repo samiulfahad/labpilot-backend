@@ -4,9 +4,11 @@ GET http://localhost:3000
 
 ####### USER ######
 
+# User test list
 ###
 GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
 
+# Create Invoice
 POST http://localhost:3000/api/v1/invoice/new HTTP/1.1
 content-type: application/json
 
@@ -27,7 +29,7 @@ content-type: application/json
     }
 }
 
-
+# Find an invoice
 ###
 GET http://localhost:3000/api/v1/invoice HTTP/1.1
 content-type: application/json
@@ -37,6 +39,7 @@ content-type: application/json
 }
 
 
+# Update invoice
 ###
 PUT http://localhost:3000/api/v1/invoice/update HTTP/1.1
 content-type: application/json
@@ -46,27 +49,31 @@ content-type: application/json
    "_id": "673dd92243bfcbbe6eda"
 }
 
+
+# User test list
 ###
 GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
 
 
 
-######## ADMIN ########
 
+######## System ########
+
+# All Test List
 ###
 GET http://localhost:3000/api/v1/global/test/all HTTP/1.1
 
 
 
-
+# Add a new test
 ###
 POST http://localhost:3000/api/v1/global/test/add HTTP/1.1
 content-type: application/json
 
 {
-   "name": "Colonoscopy",
-   "code": "colonoscopy",
-   "description": "description for XRay",
+   "name": "Ultra",
+   "code": "ultra01",
+   "description": "description for Ultra",
    "type": 2,
    "format": "standard"
 

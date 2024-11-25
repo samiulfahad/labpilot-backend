@@ -9,28 +9,30 @@ const handleError = (e, methodName) => {
   return null;
 };
 
-class GlobalTest {
-  constructor(name, code, description, type, format = "standard") {
-    this.name = name;
-    this.code = code;
-    this.description = description;
-    this.type = type;
-    this.format = format;
-  }
+class System {
+  constructor() {}
 
-  // Create Test
-  static async insertOne(doc) {
+  static async createTest(name, code, description, type, format = "standard") {
+    const test = {
+      name: name,
+      code: code,
+      description: description,
+      type: type,
+      format: format,
+      price: 0
+    };
     try {
       const db = getClient();
-      const result = await db.collection("globalTestList").insertOne(doc);
+      const result = await db.collection("globalTestList").insertOne(test);
       console.log(result);
       return result.acknowledged ? true : null;
     } catch (e) {
-      return handleError(e, "insertOne => GlobalTest");
+      return handleError(e, "createTest => System");
     }
   }
 
-  static async findAll() {
+
+  static async findAllTest() {
     try {
       const db = getClient();
       const result = await db.collection("globalTestList").find({}).toArray();
@@ -40,4 +42,4 @@ class GlobalTest {
   }
 }
 
-module.exports = GlobalTest;
+module.exports = System;
