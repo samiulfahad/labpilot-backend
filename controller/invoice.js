@@ -1,24 +1,8 @@
 /** @format */
 
-const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 
-const { validateContact, validateName, validateAge, validateDoctorName } = require("../validations/patientData");
 const Invoice = require("../database/invoice");
-const { generateDate } = require("../helpers/functions");
-
-const AllowedList = ["CBC", "RBC", "XRAY", "ECG"];
-
-// Validation Errors
-const validationError = (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return { hasError: true, errors: errors.array() };
-  } else {
-    return { hasError: false };
-  }
-};
 
 // Create a new invoice
 const postInvoice = async (req, res, next) => {
@@ -175,4 +159,12 @@ const dropCollection = async (req, res, next) => {
   }
 };
 
-module.exports = { postInvoice, putActions, putPatientData, getInvoiceById, getAllInvoices, notifyPatient, dropCollection };
+module.exports = {
+  postInvoice,
+  putActions,
+  putPatientData,
+  getInvoiceById,
+  getAllInvoices,
+  notifyPatient,
+  dropCollection,
+};
