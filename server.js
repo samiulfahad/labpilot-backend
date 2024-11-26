@@ -28,11 +28,12 @@ app.post(
   patientValidationRules,
   invoiceValidationRules,
   handleValidationErrors,
-  invoiceController.createInvoice
+  invoiceController.postInvoice
 );
 app.get("/api/v1/invoice", invoiceController.getInvoiceById);
 app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
-app.put("/api/v1/invoice/update", invoiceController.update);
+app.put("/api/v1/invoice/update/actions", invoiceController.putActions);
+app.put("/api/v1/invoice/update/patient-data", patientValidationRules, handleValidationErrors, invoiceController.putPatientData);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
 app.get("/api/v1/global/test/all", systemController.getAllTest);
@@ -40,7 +41,6 @@ app.post("/api/v1/global/test/add", systemController.postTest);
 
 app.get("/api/v1/user/test/all", userController.getTestList);
 app.put("/api/v1/user/testlist/update", userController.putTestList);
-
 
 // 404 Not Found Handler
 app.use((req, res, next) => {
@@ -50,7 +50,6 @@ app.use((req, res, next) => {
     statusCode: 404,
   });
 });
-
 
 // Error Handling Center
 app.use((err, req, res, next) => {
