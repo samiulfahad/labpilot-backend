@@ -71,10 +71,10 @@ POST http://localhost:3000/api/v1/global/test/add HTTP/1.1
 content-type: application/json
 
 {
-   "name": "Ultra",
+   "name": "Dengue Test",
    "code": "ultra01",
    "description": "description for Ultra",
-   "type": 2,
+   "type": 1,
    "format": "standard"
 
 }

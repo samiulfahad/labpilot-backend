@@ -18,8 +18,7 @@ class System {
       code: code,
       description: description,
       type: type,
-      format: format,
-      price: 0
+      format: format
     };
     try {
       const db = getClient();

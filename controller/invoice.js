@@ -8,7 +8,6 @@ const Invoice = require("../database/invoice");
 const postInvoice = async (req, res, next) => {
   try {
     const { patientData, invoiceData } = req.body;
-    // console.log(patientData);
     const invoice = new Invoice(patientData, invoiceData);
     const invoiceId = await Invoice.insertOne(invoice);
     if (invoiceId) {
@@ -16,8 +15,6 @@ const postInvoice = async (req, res, next) => {
     } else {
       return res.status(400).send({ success: false });
     }
-    // Create Uploadable Tests
-    // CreateTest("bhaluka123", invoiceId, filteredTestList)
   } catch (e) {
     next(e);
   }

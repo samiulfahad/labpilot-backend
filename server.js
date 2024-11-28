@@ -40,6 +40,8 @@ app.get("/api/v1/global/test/all", systemController.getAllTest);
 app.post("/api/v1/global/test/add", systemController.postTest);
 
 app.get("/api/v1/user/test/all", userController.getTestList);
+app.post("/api/v1/user/referrer/add", userController.postReferrer)
+app.put("/api/v1/user/test/update", userController.putTest);
 app.put("/api/v1/user/testlist/update", userController.putTestList);
 
 // 404 Not Found Handler
