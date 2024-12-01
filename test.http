@@ -4,7 +4,7 @@ GET http://localhost:3000
 
 ####### USER ######
 
-# User test list
+# User testlist
 ###
 GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
 
@@ -71,7 +71,7 @@ POST http://localhost:3000/api/v1/global/test/add HTTP/1.1
 content-type: application/json
 
 {
-   "name": "Dengue Test",
+   "name": "Ulta(Full)",
    "code": "ultra01",
    "description": "description for Ultra",
    "type": 1,

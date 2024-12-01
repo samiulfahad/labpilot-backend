@@ -104,6 +104,18 @@ class User {
       return handleError(e, "addReferrer => User");
     }
   }
+  static async referrerList(userId) {
+    try {
+      const db = getClient(); // Initialize the database connection
+      const result = await db.collection("users").findOne(
+        { _id: new ObjectId(userId) }, // Query by user ID
+        { projection: { referrerList: 1, _id: 0 } } // Project only the testList field
+      );
+      return result.referrerList ? result.referrerList : null; 
+    } catch (e) {
+      return handleError(e, "referrerList => User");
+    }
+  }
 }
 
 module.exports = User;

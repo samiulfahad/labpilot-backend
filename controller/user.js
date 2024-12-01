@@ -80,4 +80,19 @@ const postReferrer = async (req, res, next) => {
   }
 };
 
-module.exports = { getTestList, postReferrer, putTest, putTestList };
+const getReferrerList = async (req, res, next) => {
+  try {
+    const userId = "6747696d74e437e56a1f3540";
+    const list = await User.referrerList(userId);
+    console.log(list);
+    if (list) {
+      return res.status(200).send({ success: true, list });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+module.exports = { getTestList, getReferrerList, postReferrer, putTest, putTestList };
