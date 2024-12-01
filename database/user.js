@@ -85,8 +85,8 @@ class User {
       const newReferrer = {
         _id: new ObjectId(), // Generate a unique ID for the referrer
         name,
-        commissionType,
         commission,
+        commissionType,
         isDoctor,
         description,
       };
@@ -94,7 +94,7 @@ class User {
       // Update the user's referrers array by adding the new referrer
       const result = await db.collection("users").updateOne(
         { _id: new ObjectId(userId) }, // Match the user by ID
-        { $push: { referrers: newReferrer } } // Push the new referrer into the referrers array
+        { $push: { referrerList: newReferrer } } // Push the new referrer into the referrers array
       );
 
       // Check if the update was successful
@@ -104,6 +104,41 @@ class User {
       return handleError(e, "addReferrer => User");
     }
   }
+
+  static async updateReferrer(userId, referrerId, updates) {
+    try {
+      // Validate `updates` to ensure it is an object
+      if (typeof updates !== "object" || updates === null) {
+        throw new Error("Invalid updates object");
+      }
+  
+      const db = getClient();
+  
+      // Prepare the update object dynamically
+      const setUpdates = {};
+      for (const [field, value] of Object.entries(updates)) {
+        setUpdates[`referrerList.$.${field}`] = value;
+      }
+  
+      const result = await db.collection("users").updateOne(
+        {
+          _id: new ObjectId(userId), // Match the user by ID
+          "referrerList._id": new ObjectId(referrerId), // Match the specific referrer by ID
+        },
+        {
+          $set: setUpdates, // Dynamically set fields in the matched referrer
+        }
+      );
+  
+      console.log("Update Result:", result);
+  
+      return result.matchedCount > 0; // Return true if a document was matched
+    } catch (e) {
+      return handleError(e, "updateReferrer => User");
+    }
+  }
+  
+
   static async referrerList(userId) {
     try {
       const db = getClient(); // Initialize the database connection

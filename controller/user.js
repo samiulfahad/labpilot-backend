@@ -65,7 +65,7 @@ const putTestList = async (req, res, next) => {
 const postReferrer = async (req, res, next) => {
   try {
     const { name, commissionType, commission, isDoctor, description } = req.body;
-    if (!name || !commissionType || !commission || !isDoctor || !description) {
+    if (!name || !commission || !commissionType || !isDoctor || !description) {
       return res.status(400).send({ success: false, msg: "Required field missing" });
     }
     const userId = "6747696d74e437e56a1f3540";
@@ -80,11 +80,36 @@ const postReferrer = async (req, res, next) => {
   }
 };
 
+// Update a Referrer
+const putReferrer = async (req, res, next) => {
+  try {
+    const { referrerId, name, commissionType, commission, isDoctor, description } = req.body;
+    console.log(req.body);
+    if (!referrerId || !name || !commission || !commissionType || !isDoctor || !description) {
+      return res.status(400).send({ success: false, msg: "Required field missing" });
+    }
+    // Validate object id
+    if (!ObjectId.isValid(referrerId)) {
+      return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
+    }
+    const updates = { name, commission, commissionType, isDoctor, description };
+    const userId = "6747696d74e437e56a1f3540";
+    const result = await User.updateReferrer(userId, referrerId, updates);
+    if (result) {
+      return res.status(200).send({ success: true });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+// Get referrer list
 const getReferrerList = async (req, res, next) => {
   try {
     const userId = "6747696d74e437e56a1f3540";
     const list = await User.referrerList(userId);
-    console.log(list);
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -95,4 +120,4 @@ const getReferrerList = async (req, res, next) => {
   }
 };
 
-module.exports = { getTestList, getReferrerList, postReferrer, putTest, putTestList };
+module.exports = { getTestList, getReferrerList, postReferrer, putReferrer, putTest, putTestList };

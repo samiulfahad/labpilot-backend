@@ -40,8 +40,9 @@ app.get("/api/v1/global/test/all", systemController.getAllTest);
 app.post("/api/v1/global/test/add", systemController.postTest);
 
 app.get("/api/v1/user/test/all", userController.getTestList);
-app.get("/api/v1/user/referrer/all", userController.getReferrerList)
 app.post("/api/v1/user/referrer/add", userController.postReferrer)
+app.put("/api/v1/user/referrer/edit", userController.putReferrer)
+app.get("/api/v1/user/referrer/all", userController.getReferrerList)
 app.put("/api/v1/user/test/update", userController.putTest);
 app.put("/api/v1/user/testlist/update", userController.putTestList);
 
