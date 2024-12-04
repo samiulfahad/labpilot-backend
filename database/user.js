@@ -15,6 +15,21 @@ class User {
     this.name = name;
   }
 
+  static async getTestListAndReferrerList(userId) {
+    try {
+      const db = getClient();
+      const result = await db
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrerList: 1, _id: 0 } });
+      // console.log(result);
+      return result.testList && result.referrerList
+        ? { testList: result.testList, referrerList: result.referrerList }
+        : null;
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
   static async testList(userId) {
     try {
       const db = getClient(); // Assumes getClient() initializes the MongoDB connection
@@ -111,15 +126,15 @@ class User {
       if (typeof updates !== "object" || updates === null) {
         throw new Error("Invalid updates object");
       }
-  
+
       const db = getClient();
-  
+
       // Prepare the update object dynamically
       const setUpdates = {};
       for (const [field, value] of Object.entries(updates)) {
         setUpdates[`referrerList.$.${field}`] = value;
       }
-  
+
       const result = await db.collection("users").updateOne(
         {
           _id: new ObjectId(userId), // Match the user by ID
@@ -129,15 +144,14 @@ class User {
           $set: setUpdates, // Dynamically set fields in the matched referrer
         }
       );
-  
+
       console.log("Update Result:", result);
-  
+
       return result.matchedCount > 0; // Return true if a document was matched
     } catch (e) {
       return handleError(e, "updateReferrer => User");
     }
   }
-  
 
   static async referrerList(userId) {
     try {
@@ -146,7 +160,7 @@ class User {
         { _id: new ObjectId(userId) }, // Query by user ID
         { projection: { referrerList: 1, _id: 0 } } // Project only the testList field
       );
-      return result.referrerList ? result.referrerList : null; 
+      return result.referrerList ? result.referrerList : null;
     } catch (e) {
       return handleError(e, "referrerList => User");
     }

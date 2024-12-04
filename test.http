@@ -61,20 +61,31 @@ GET http://localhost:3000/api/v1/user/test/all HTTP/1.1
 
 # All Test List
 ###
-GET http://localhost:3000/api/v1/global/test/all HTTP/1.1
+GET http://localhost:3000/api/v1/system/test/all HTTP/1.1
 
 
-
-# Add a new test
+# Add a new user
 ###
-POST http://localhost:3000/api/v1/global/test/add HTTP/1.1
+POST http://localhost:3000/api/v1/system/user/add HTTP/1.1
 content-type: application/json
 
 {
-   "name": "Ulta(Full)",
-   "code": "ultra01",
-   "description": "description for Ultra",
-   "type": 1,
+   "labName": "Azizul Haque diagonostic Center",
+   "contact": "01723xxxxxx",
+   "email": "az15624@gmail.com"
+
+}
+
+# Add a new test
+###
+POST http://localhost:3000/api/v1/system/test/add HTTP/1.1
+content-type: application/json
+
+{
+   "name": "ECG",
+   "code": "ecg01",
+   "description": "description for ECG",
+   "type": 2,
    "format": "standard"
 
 }

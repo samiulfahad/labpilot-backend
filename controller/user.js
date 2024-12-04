@@ -1,12 +1,34 @@
 /** @format */
 
-const { ObjectId } = require("mongodb");
-const User = require("../database/user");
+const { USER_ID } = require("../config"); // Configuration for user ID
+const { ObjectId } = require("mongodb"); // MongoDB ObjectId validation utility
+const User = require("../database/user"); // User database operations
 
+/**
+ * Fetches test list and referrer list for creating a new invoice.
+ */
+const getDataForNewInvoice = async (req, res, next) => {
+  try {
+    const userId = USER_ID; // Current user ID
+    const result = await User.getTestListAndReferrerList(userId); // Fetch data
+    if (result) {
+      return res.status(200).send({ success: true, testList: result.testList, referrerList: result.referrerList });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    return res.status(400).send({ success: false });
+    next(e); // Pass error to next middleware
+  }
+};
+
+/**
+ * Fetches the test list for a user.
+ */
 const getTestList = async (req, res, next) => {
   try {
-    const userId = "6747696d74e437e56a1f3540";
-    const list = await User.testList(userId);
+    const userId = USER_ID;
+    const list = await User.testList(userId); // Fetch test list
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -17,23 +39,26 @@ const getTestList = async (req, res, next) => {
   }
 };
 
-// Update a test
+/**
+ * Updates a specific field of a test.
+ */
 const putTest = async (req, res, next) => {
   try {
-    console.log(111);
-    const { testId, field, value } = req.body;
-    console.log(testId, field, value);
-    const allowedFields = ["price"];
+    const { testId, field, value } = req.body; // Extract data from request
+    const allowedFields = ["price"]; // Define allowed fields to update
+
+    // Validate request
     if (!testId || !field || !value || !allowedFields.includes(field)) {
       return res.status(400).send({ success: false, msg: "Required field missing" });
     }
 
-    // Validate object id
+    // Validate testId as a valid MongoDB ObjectId
     if (!ObjectId.isValid(testId)) {
       return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
     }
-    const userId = "6747696d74e437e56a1f3540";
-    const result = await User.updateTest(userId, testId, field, value);
+
+    const userId = USER_ID;
+    const result = await User.updateTest(userId, testId, field, value); // Update test
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -44,14 +69,25 @@ const putTest = async (req, res, next) => {
   }
 };
 
+/**
+ * Updates the entire test list for a user.
+ */
 const putTestList = async (req, res, next) => {
-  const { testList } = req.body;
+  let { testList } = req.body; // Extract test list from request body
   if (!testList) {
     return res.status(400).send({ success: false, msg: "Required field missing" });
   }
   try {
-    const userId = "6747696d74e437e56a1f3540";
-    const result = await User.updateTestList(userId, testList);
+    // Ensure each test in the list has a numeric price
+    testList = testList.map((test) => {
+      if (typeof test.price !== "number") {
+        test.price = 0; // Default to 0 if not a number
+      }
+      return test;
+    });
+
+    const userId = USER_ID;
+    const result = await User.updateTestList(userId, testList); // Update test list
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -62,14 +98,18 @@ const putTestList = async (req, res, next) => {
   }
 };
 
+/**
+ * Adds a new referrer to the user's referrer list.
+ */
 const postReferrer = async (req, res, next) => {
   try {
-    const { name, commissionType, commission, isDoctor, description } = req.body;
+    const { name, commissionType, commission, isDoctor, description } = req.body; // Extract data from request
     if (!name || !commission || !commissionType || !isDoctor || !description) {
       return res.status(400).send({ success: false, msg: "Required field missing" });
     }
-    const userId = "6747696d74e437e56a1f3540";
-    const result = await User.addReferrer(userId, name, commissionType, commission, isDoctor, description);
+
+    const userId = USER_ID;
+    const result = await User.addReferrer(userId, name, commissionType, commission, isDoctor, description); // Add referrer
     if (result) {
       return res.status(201).send({ success: true });
     } else {
@@ -80,21 +120,24 @@ const postReferrer = async (req, res, next) => {
   }
 };
 
-// Update a Referrer
+/**
+ * Updates an existing referrer.
+ */
 const putReferrer = async (req, res, next) => {
   try {
-    const { referrerId, name, commissionType, commission, isDoctor, description } = req.body;
-    console.log(req.body);
+    const { referrerId, name, commissionType, commission, isDoctor, description } = req.body; // Extract data from request
     if (!referrerId || !name || !commission || !commissionType || !isDoctor || !description) {
       return res.status(400).send({ success: false, msg: "Required field missing" });
     }
-    // Validate object id
+
+    // Validate referrerId as a valid MongoDB ObjectId
     if (!ObjectId.isValid(referrerId)) {
       return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
     }
+
     const updates = { name, commission, commissionType, isDoctor, description };
-    const userId = "6747696d74e437e56a1f3540";
-    const result = await User.updateReferrer(userId, referrerId, updates);
+    const userId = USER_ID;
+    const result = await User.updateReferrer(userId, referrerId, updates); // Update referrer
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -105,11 +148,13 @@ const putReferrer = async (req, res, next) => {
   }
 };
 
-// Get referrer list
+/**
+ * Fetches the referrer list for a user.
+ */
 const getReferrerList = async (req, res, next) => {
   try {
-    const userId = "6747696d74e437e56a1f3540";
-    const list = await User.referrerList(userId);
+    const userId = USER_ID;
+    const list = await User.referrerList(userId); // Fetch referrer list
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -120,4 +165,12 @@ const getReferrerList = async (req, res, next) => {
   }
 };
 
-module.exports = { getTestList, getReferrerList, postReferrer, putReferrer, putTest, putTestList };
+module.exports = {
+  getDataForNewInvoice,
+  getTestList,
+  getReferrerList,
+  postReferrer,
+  putReferrer,
+  putTest,
+  putTestList,
+};

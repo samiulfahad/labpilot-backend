@@ -10,21 +10,25 @@ const handleError = (e, methodName) => {
 };
 
 class System {
-  constructor() {}
+  constructor() { }
+  
+  static async createUser(user) {
+    try {
+      const db = getClient()
+      const result = await db.collection("users").insertOne(user)
+      // console.log(result);
+      return result.insertedId ? true : null
+    } catch (e) {
+      return handleError(e, "createUser => System")
+     }
+  }
 
-  static async createTest(name, code, description, type, format = "standard") {
-    const test = {
-      name: name,
-      code: code,
-      description: description,
-      type: type,
-      format: format
-    };
+  static async createTest(test) {
     try {
       const db = getClient();
       const result = await db.collection("globalTestList").insertOne(test);
-      console.log(result);
-      return result.acknowledged ? true : null;
+      // console.log(result);
+      return result.insertedId ? true : null;
     } catch (e) {
       return handleError(e, "createTest => System");
     }
