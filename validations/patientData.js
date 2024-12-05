@@ -37,7 +37,7 @@ const validateDoctorName = body('patientData.doctorName')
   .exists({ checkFalsy: true }).withMessage('Doctor name is required.') // Check for existence and non-empty
   .isString()
   .trim()
-  .isLength({ max: 70 })
+  .isLength({ max: 100 })
   .withMessage('Doctor name must be a valid string with a maximum length of 100 characters.');
 
 // Combine all validations into a reusable array

@@ -42,7 +42,7 @@ const generateDate = () => {
   const year = now.getFullYear();
 
   // Format the date
-  return `${day}${suffix} ${month} ${year}`;
+  return parseInt(`${day}${suffix}${month}${year}`)
 };
 
 module.exports = { generateInvoiceId, generateDate };

@@ -14,20 +14,19 @@ const handleError = (e, methodName) => {
 
 class Invoice {
   constructor(patientData, invoiceData) {
-    const invoiceId = generateInvoiceId();
-    this.invoiceId = invoiceId;
+    this.invoiceId = generateInvoiceId();
+    this.referrerId = invoiceData.referrerId;
     this.name = patientData.name;
     this.age = patientData.age;
-    this.gender = patientData.gender;
     this.contact = patientData.contact;
+    this.gender = patientData.gender;
     this.doctorName = patientData.doctorName;
-    this.referrerId = invoiceData.referrerId;
     this.total = invoiceData.total;
-    this.netAmount = invoiceData.netAmount;
     this.discount = invoiceData.discount;
-    this.discountType = invoiceData.discountType;
     this.labAdjustment = invoiceData.labAdjustment;
+    this.netAmount = invoiceData.netAmount;
     this.paid = invoiceData.paid;
+    this.commission = invoiceData.commission;
     this.testList = invoiceData.testList;
     this.notified = false;
     this.delivered = false;
