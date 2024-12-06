@@ -165,8 +165,23 @@ const getReferrerList = async (req, res, next) => {
   }
 };
 
+const getCashMemo = async (req, res, next) => {
+  try {
+    const userId = USER_ID;
+    const cashMemo = await User.cashMemo(userId); // Fetch cashmemo
+    if (cashMemo) {
+      return res.status(200).send({ success: true, cashMemo });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
 module.exports = {
   getDataForNewInvoice,
+  getCashMemo,
   getTestList,
   getReferrerList,
   postReferrer,

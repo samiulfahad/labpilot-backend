@@ -15,6 +15,56 @@ class User {
     this.name = name;
   }
 
+  // Complete the getCashMemo function
+static async cashMemo(collectionName) {
+  try {
+    const db = getClient(); // Get the MongoDB client
+
+    // Perform aggregation to calculate the required sums and count
+    const result = await db.collection("collection-1").aggregate([
+      {
+        $group: {
+          _id: null, // Group all documents
+          totalSale: { $sum: "$total" },
+          totalLabAdjustment: { $sum: "$labAdjustment" },
+          totalReferrerDiscount: { $sum: "$discount" },
+          totalCommission: { $sum: "$commission" },
+          totalReceived: { $sum: "$paid" },
+          totalCashInCounter: { $sum: "$paid" }, // Assuming this is equivalent to totalReceived
+          totalNetAmount: { $sum: "$netAmount" },
+          totalInvoice: { $count: {} } // Count the number of documents
+        }
+      }
+    ]).toArray();
+
+    // console.log(result);
+
+    // If no data found, return null
+    if (!result) {
+      return null;
+    }
+   
+
+    // Prepare the output based on aggregation result
+    const cashMemo = {
+      totalSale: result[0]?.totalSale || 0,
+      totalLabAdjustment: result[0]?.totalLabAdjustment || 0,
+      totalReferrerDiscunt: result[0]?.totalReferrerDiscount || 0,
+      totalCommission: result[0]?.totalCommission || 0,
+      totalReceived: result[0]?.totalReceived || 0,
+      totalCashInCounter: result[0]?.totalCashInCounter || 0,
+      totalNetAmount: result[0]?.totalNetAmount || 0,
+      totalInvoice: result[0]?.totalInvoice || 0
+    };
+
+    return cashMemo;
+  } catch (e) {
+    // Handle error and return null
+    return handleError(e, "cashMemo => Collection");
+  }
+}
+
+
   static async getTestListAndReferrerList(userId) {
     try {
       const db = getClient();

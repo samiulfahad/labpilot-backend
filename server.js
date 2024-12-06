@@ -23,6 +23,7 @@ app.get("/", (req, res, next) => {
   res.status(200).send({ success: true, msg: "Server is running" });
 });
 app.get("/api/v1/user/dataForNewInvoice", userController.getDataForNewInvoice);
+app.get("/api/v1/user/cashmemo", userController.getCashMemo);
 app.post(
   "/api/v1/invoice/new",
   patientValidationRules,

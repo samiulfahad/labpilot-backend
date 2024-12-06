@@ -1,0 +1,115 @@
+complete the following function (getCashMemo)
+
+  // Complete the getCashMemo function
+  static async getCashMemo(collectonName) {
+    try {
+      const db = getClient();
+      // Write query and give back data in the following format
+    // For success case 
+    output = {
+    totalSale: 0,
+    totalLabAdjustment: 0,
+    totalReferrerDiscunt: 0,
+    totalCommission: 0,
+    totalReceived: 0,
+    totalCashInCounter: 0,
+    totalNetAmount: 0,
+    totalInvoice: 0,
+  }; 
+  and for error or other return null
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
+
+
+write queries to get the sum of all "total", all "discount", all "labAdjustment", all "commission", all "netAmount", all "paid" and the number of documents.
+
+doc 1:
+
+{
+  "_id": {
+    "$oid": "6751ec46eb338e66f01ce46d"
+  },
+  "invoiceId": "241206000910",
+  "referrerId": "6750a7c850e0305a7424d989",
+  "name": "Samiul Fahad",
+  "age": 25,
+  "contact": "01723939836",
+  "gender": "male",
+  "doctorName": "Dr. Ibrahim",
+  "total": 1000,
+  "discount": 200,
+  "labAdjustment": 100,
+  "netAmount": 800,
+  "paid": 800,
+  "commission": 50,
+  "testList": [
+    {
+      "_id": "6750828bb08c3f85ca9226ef",
+      "name": "RBS",
+      "code": "rbs01",
+      "description": "description for RBS",
+      "type": 1,
+      "format": "standard",
+      "price": 700
+    },
+    {
+      "_id": "67508275b08c3f85ca9226ed",
+      "name": "Ultra",
+      "code": "ultra01",
+      "description": "description for Ultra",
+      "type": 2,
+      "format": "standard",
+      "price": 300
+    }
+  ],
+  "notified": false,
+  "delivered": true,
+  "labId": "bhaluka123"
+}
+
+
+doc 2: 
+{
+  "_id": {
+    "$oid": "6752e51e96235cfe6efe2a00"
+  },
+  "invoiceId": "241206175054",
+  "referrerId": "6750a7c850e0305a7424d989",
+  "name": "Samiul Fahad",
+  "age": 25,
+  "contact": "12345678900",
+  "gender": "male",
+  "doctorName": "Dr. Percentage",
+  "total": 1000,
+  "discount": 250,
+  "labAdjustment": 0,
+  "netAmount": 750,
+  "paid": 0,
+  "commission": 0,
+  "testList": [
+    {
+      "_id": "67508275b08c3f85ca9226ed",
+      "name": "Ultra",
+      "code": "ultra01",
+      "description": "description for Ultra",
+      "type": 2,
+      "format": "standard",
+      "price": 300
+    },
+    {
+      "_id": "6750828bb08c3f85ca9226ef",
+      "name": "RBS",
+      "code": "rbs01",
+      "description": "description for RBS",
+      "type": 1,
+      "format": "standard",
+      "price": 700
+    }
+  ],
+  "notified": false,
+  "delivered": false,
+  "labId": "bhaluka123"
+}

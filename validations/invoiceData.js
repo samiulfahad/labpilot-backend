@@ -66,10 +66,10 @@ const validateDiscount = body("invoiceData.discount")
     return true;
   });
 
-
 // LabAdjustment: must be greater than or equal to 0 and less than or equal to netAmount
 const validateLabAdjustment = body("invoiceData.labAdjustment")
-  .exists({ checkFalsy: true })
+  .not()
+  .isEmpty()
   .withMessage("Lab Adjustment is required.")
   .isFloat({ min: 0 })
   .withMessage("Lab Adjustment must be a valid number greater than or equal to 0.")
