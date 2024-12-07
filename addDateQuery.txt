@@ -1,0 +1,450 @@
+
+### document format in mongo db ###
+{
+  "_id": {
+    "$oid": "6752fb292dc6525e4b16a37c"
+  },
+  "invoiceId": "241206192457",
+  "referrerId": "6750a7d950e0305a7424d98a",
+  "name": "Samiul Fahad",
+  "age": 25,
+  "contact": "01723939836",
+  "gender": "male",
+  "doctorName": "Dr. Fix",
+  "total": 1000,
+  "discount": 200,
+  "labAdjustment": 200,
+  "netAmount": 600,
+  "paid": 100,
+  "commission": 100,
+  "testList": [
+    {
+      "_id": "6750828bb08c3f85ca9226ef",
+      "name": "RBS",
+      "code": "rbs01",
+      "description": "description for RBS",
+      "type": 1,
+      "format": "standard",
+      "price": 700
+    },
+    {
+      "_id": "67508275b08c3f85ca9226ed",
+      "name": "Ultra",
+      "code": "ultra01",
+      "description": "description for Ultra",
+      "type": 2,
+      "format": "standard",
+      "price": 300
+    }
+  ],
+  "notified": false,
+  "delivered": false,
+  "labId": "bhaluka123"
+}
+
+### class to create a document ###
+/** @format */
+
+const { ObjectId } = require("mongodb");
+
+const { getClient } = require("./connection");
+const { generateInvoiceId } = require("../helpers/functions");
+
+const handleError = (e, methodName) => {
+  console.log("Error in database operation");
+  console.log(`${methodName} produced an error`);
+  console.log(e.message);
+  return null;
+};
+
+class Invoice {
+  constructor(patientData, invoiceData) {
+    this.invoiceId = generateInvoiceId();
+    this.referrerId = invoiceData.referrerId;
+    this.name = patientData.name;
+    this.age = patientData.age;
+    this.contact = patientData.contact;
+    this.gender = patientData.gender;
+    this.doctorName = patientData.doctorName;
+    this.total = invoiceData.total;
+    this.discount = invoiceData.discount;
+    this.labAdjustment = invoiceData.labAdjustment;
+    this.netAmount = invoiceData.netAmount;
+    this.paid = invoiceData.paid;
+    this.commission = invoiceData.commission;
+    this.testList = invoiceData.testList;
+    this.notified = false;
+    this.delivered = false;
+    this.labId = "bhaluka123";
+  }
+
+  // Create invoice
+  static async insertOne(doc) {
+    try {
+      const db = getClient();
+      const result = await db.collection("collection-1").insertOne(doc);
+      return result.insertedId ? doc.invoiceId : null;
+    } catch (e) {
+      return handleError(e, "insertOne");
+    }
+  }
+
+  // Find invoice by id
+  static async findById(id) {
+    try {
+      const db = getClient();
+      const invoice = await db.collection("collection-1").findOne({ _id: new ObjectId(id) });
+      // console.log(invoice);
+      return invoice ? invoice : null;
+    } catch (e) {
+      return handleError(e, "findById");
+    }
+  }
+
+  // Find All Invoices
+  static async findAll() {
+    try {
+      const db = getClient();
+      const projection = {
+        invoiceId: 1,
+        name: 1,
+        contact: 1,
+        netAmount: 1,
+        paid: 1,
+        testList: 1,
+        completed: 1,
+        delivered: 1,
+        notified: 1,
+      };
+      const invoices = await db.collection("collection-1").find({}).project(projection).toArray();
+      // console.log(invoices);
+      const total = await db.collection("collection-1").countDocuments();
+      return { total, invoices };
+    } catch (e) {
+      return handleError(e, "findAll");
+    }
+  }
+
+
+    // Update Patient Data
+  static async updateById(_id, patientData) {
+    const { name, age, contact, gender, doctorName } = patientData
+    const update = {name, age, contact, gender, doctorName}
+      try {
+        const db = getClient();
+        const filter = { _id: new ObjectId(_id) };
+          const result = await db.collection("collection-1").updateOne(filter, { $set: update });
+          return result.modifiedCount === 1 ? true : null
+        
+      } catch (e) {
+        return handleError(e, "updateById");
+      }
+    }
+
+
+  // Update invoice actions
+  static async updateActions(_id, update) {
+    try {
+      const db = getClient();
+      const filter = { _id: new ObjectId(_id) };
+      if (update === "paid") {
+        const result = await db.collection("collection-1").updateOne(filter, [{ $set: { paid: "$netAmount" } }]);
+        return result.modifiedCount === 1 ? true : null;
+      } else if (update === "delivered") {
+        const result = await db.collection("collection-1").updateOne(filter, { $set: { delivered: true } });
+        return result.modifiedCount === 1 ? true : null;
+      } else if (update === "notified") {
+        const result = await db.collection("collection-1").updateOne(filter, { $set: { notified: true } });
+        return result.modifiedCount === 1 ? true : null;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return handleError(e, "updateById");
+    }
+  }
+
+  // Count all documents of a collection
+  static async countAll() {
+    try {
+      const db = getClient();
+      const count = await db.collection("collection-1").countDocuments();
+      if (count) {
+        return count;
+      }
+    } catch (e) {
+      return handleError(e, "countAll");
+    }
+  }
+
+  // Drop a collection
+  static async dropCollection() {
+    try {
+      const db = getClient();
+      const result = await db.collection("collection-1").drop();
+      if (result) {
+        return true;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return handleError(e, "dropCollection");
+    }
+  }
+}
+
+module.exports = Invoice;
+
+### Function that generates invoiceId ###
+const generateInvoiceId = () => {
+  // Get the current date and time
+  const now = new Date();
+
+  // Format the time as HH:MM:SS
+  const timeString = now.toTimeString().split(" ")[0]; // Extract time part
+  console.log("Time (HH:MM:SS):", timeString);
+
+  // Format with date and time (YY-MM-DD HH:MM:SS)
+  const id = `${String(now.getFullYear() % 100).padStart(2, "0")}${String(now.getMonth() + 1).padStart(2, "0")}${String(
+    now.getDate()
+  ).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(
+    now.getSeconds()
+  ).padStart(2, "0")}`;
+
+  return id;
+};
+
+
+
+
+Now, here is the task for you.
+
+Modify the existing code or follow your own way so that I can easily find the documents which were created in a specific month.
+Example: All documents of January, 2024
+Also Date specific documents. Like All documents that were created in 5th January 2025,
+Also all documents that were created between January 10 to January 20.
+You can modify the code, class, functions, add new functions.
+
+See the cashMemo function following. I will query the cashMemo for these examples (cashMemo for today, or a month or a specific time period example january 5 to january 15).
+you can modify both in Invoice Class and User Class.
+
+/** @format */
+
+const { getClient } = require("./connection");
+
+const { ObjectId } = require("mongodb"); // Ensure ObjectId is imported
+const handleError = (e, methodName) => {
+  console.log("Error in database operation");
+  console.log(`${methodName} produced an error`);
+  console.log(e.message);
+  return null;
+};
+
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+
+  // Complete the getCashMemo function
+static async cashMemo(collectionName) {
+  try {
+    const db = getClient(); // Get the MongoDB client
+
+    // Perform aggregation to calculate the required sums and count
+    const result = await db.collection("collection-1").aggregate([
+      {
+        $group: {
+          _id: null, // Group all documents
+          totalSale: { $sum: "$total" },
+          totalLabAdjustment: { $sum: "$labAdjustment" },
+          totalReferrerDiscount: { $sum: "$discount" },
+          totalCommission: { $sum: "$commission" },
+          totalReceived: { $sum: "$paid" },
+          totalCashInCounter: { $sum: "$paid" }, // Assuming this is equivalent to totalReceived
+          totalNetAmount: { $sum: "$netAmount" },
+          totalInvoice: { $count: {} } // Count the number of documents
+        }
+      }
+    ]).toArray();
+
+    // console.log(result);
+
+    // If no data found, return null
+    if (!result) {
+      return null;
+    }
+   
+
+    // Prepare the output based on aggregation result
+    const cashMemo = {
+      totalSale: result[0]?.totalSale || 0,
+      totalLabAdjustment: result[0]?.totalLabAdjustment || 0,
+      totalReferrerDiscunt: result[0]?.totalReferrerDiscount || 0,
+      totalCommission: result[0]?.totalCommission || 0,
+      totalReceived: result[0]?.totalReceived || 0,
+      totalCashInCounter: result[0]?.totalCashInCounter || 0,
+      totalNetAmount: result[0]?.totalNetAmount || 0,
+      totalInvoice: result[0]?.totalInvoice || 0
+    };
+
+    return cashMemo;
+  } catch (e) {
+    // Handle error and return null
+    return handleError(e, "cashMemo => Collection");
+  }
+}
+
+
+  static async getTestListAndReferrerList(userId) {
+    try {
+      const db = getClient();
+      const result = await db
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrerList: 1, _id: 0 } });
+      // console.log(result);
+      return result.testList && result.referrerList
+        ? { testList: result.testList, referrerList: result.referrerList }
+        : null;
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
+  static async testList(userId) {
+    try {
+      const db = getClient(); // Assumes getClient() initializes the MongoDB connection
+      const result = await db.collection("users").findOne(
+        { _id: new ObjectId(userId) }, // Query by user ID
+        { projection: { testList: 1, _id: 0 } } // Project only the testList field
+      );
+      // console.log(result.testList);
+
+      return result.testList ? result.testList : null; // Return the testList array or an empty array if not found
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
+  static async updateTestList(userId, testList) {
+    try {
+      const db = getClient(); // Assumes getClient() initializes the MongoDB connection
+
+      // Update the user's testList
+      const result = await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) }, // Filter: find the user by ID
+        { $set: { testList: testList } } // Update operation
+      );
+
+      // Check if the update was successful
+      if (result.matchedCount === 0) {
+        return null; // No document found with the given userId
+      }
+
+      return true; // Successfully updated
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
+  static async updateTest(userId, testId, field, value) {
+    try {
+      const db = getClient();
+
+      // Perform the update using the positional operator `$`
+      const result = await db.collection("users").updateOne(
+        {
+          _id: new ObjectId(userId), // Match the user by ID
+          "testList._id": testId, // Match the specific test by ID
+        },
+        {
+          $set: {
+            [`testList.$.${field}`]: value, // Use positional operator `$` to target the matched test
+          },
+        }
+      );
+
+      console.log("Update Result:", result);
+
+      return result.matchedCount > 0; // Return true if a document was matched
+    } catch (e) {
+      console.error("Error in updateTest:", e);
+      return handleError(e, "testList => User");
+    }
+  }
+
+  static async addReferrer(userId, name, commissionType, commission, isDoctor, description) {
+    try {
+      const db = getClient(); // Initialize the database connection
+
+      // Create the new referrer object
+      const newReferrer = {
+        _id: new ObjectId(), // Generate a unique ID for the referrer
+        name,
+        commission,
+        commissionType,
+        isDoctor,
+        description,
+      };
+
+      // Update the user's referrers array by adding the new referrer
+      const result = await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) }, // Match the user by ID
+        { $push: { referrerList: newReferrer } } // Push the new referrer into the referrers array
+      );
+
+      // Check if the update was successful
+
+      return result.matchedCount === 1 ? true : null;
+    } catch (e) {
+      return handleError(e, "addReferrer => User");
+    }
+  }
+
+  static async updateReferrer(userId, referrerId, updates) {
+    try {
+      // Validate `updates` to ensure it is an object
+      if (typeof updates !== "object" || updates === null) {
+        throw new Error("Invalid updates object");
+      }
+
+      const db = getClient();
+
+      // Prepare the update object dynamically
+      const setUpdates = {};
+      for (const [field, value] of Object.entries(updates)) {
+        setUpdates[`referrerList.$.${field}`] = value;
+      }
+
+      const result = await db.collection("users").updateOne(
+        {
+          _id: new ObjectId(userId), // Match the user by ID
+          "referrerList._id": new ObjectId(referrerId), // Match the specific referrer by ID
+        },
+        {
+          $set: setUpdates, // Dynamically set fields in the matched referrer
+        }
+      );
+
+      console.log("Update Result:", result);
+
+      return result.matchedCount > 0; // Return true if a document was matched
+    } catch (e) {
+      return handleError(e, "updateReferrer => User");
+    }
+  }
+
+  static async referrerList(userId) {
+    try {
+      const db = getClient(); // Initialize the database connection
+      const result = await db.collection("users").findOne(
+        { _id: new ObjectId(userId) }, // Query by user ID
+        { projection: { referrerList: 1, _id: 0 } } // Project only the testList field
+      );
+      return result.referrerList ? result.referrerList : null;
+    } catch (e) {
+      return handleError(e, "referrerList => User");
+    }
+  }
+}
+
+module.exports = User;

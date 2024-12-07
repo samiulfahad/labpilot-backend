@@ -29,6 +29,11 @@ content-type: application/json
     }
 }
 
+
+# Find invoices by Date
+###
+GET http://localhost:3000/api/v1/invoice/date HTTP/1.1
+
 # Find an invoice
 ###
 GET http://localhost:3000/api/v1/invoice HTTP/1.1
@@ -87,5 +92,16 @@ content-type: application/json
    "description": "description for ECG",
    "type": 2,
    "format": "standard"
+
+}
+
+
+# Convert Date
+###
+POST http://localhost:3000/convert-date HTTP/1.1
+content-type: application/json
+
+{
+   "dateString": "2024-12-06"
 
 }

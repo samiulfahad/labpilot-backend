@@ -4,8 +4,6 @@ const { ObjectId } = require("mongodb");
 
 const Invoice = require("../database/invoice");
 
-
-
 // Create a new invoice
 const postInvoice = async (req, res, next) => {
   try {
@@ -16,6 +14,22 @@ const postInvoice = async (req, res, next) => {
       return res.status(201).send({ success: true, msg: "Invoice created", invoiceId });
     } else {
       return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+// All invoices by Date
+const getInvoicesByDate = async (req, res, next) => {
+  try {
+    const start = 241206000000;
+    const end = 241207235959;
+    const list = await Invoice.findByDateRange(start, end);
+    if (list) {
+      res.status(200).send({ success: true, total: list.length, list });
+    } else {
+      res.status(400).send({ success: false, msg: "Could not retrive data" });
     }
   } catch (e) {
     next(e);
@@ -163,6 +177,7 @@ module.exports = {
   putActions,
   putPatientData,
   getInvoiceById,
+  getInvoicesByDate,
   getAllInvoices,
   notifyPatient,
   dropCollection,

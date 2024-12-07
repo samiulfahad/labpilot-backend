@@ -15,7 +15,7 @@ const generateInvoiceId = () => {
     now.getSeconds()
   ).padStart(2, "0")}`;
 
-  return id;
+  return parseInt(id);
 };
 
 const generateDate = () => {

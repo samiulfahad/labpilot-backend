@@ -40,6 +40,8 @@ app.put(
   handleValidationErrors,
   invoiceController.putPatientData
 );
+
+app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate)
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
 app.post("/api/v1/system/user/add", systemController.postUser)
@@ -52,6 +54,9 @@ app.put("/api/v1/user/referrer/edit", userController.putReferrer);
 app.get("/api/v1/user/referrer/all", userController.getReferrerList);
 app.put("/api/v1/user/test/update", userController.putTest);
 app.put("/api/v1/user/testlist/update", userController.putTestList);
+
+
+
 
 // 404 Not Found Handler
 app.use((req, res, next) => {

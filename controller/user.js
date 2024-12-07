@@ -167,8 +167,9 @@ const getReferrerList = async (req, res, next) => {
 
 const getCashMemo = async (req, res, next) => {
   try {
+    const filter = { startDate: 241206000000, endDate: 241206235959 };
     const userId = USER_ID;
-    const cashMemo = await User.cashMemo(userId); // Fetch cashmemo
+    const cashMemo = await User.cashMemo(filter); // Fetch cashmemo
     if (cashMemo) {
       return res.status(200).send({ success: true, cashMemo });
     } else {
@@ -177,7 +178,7 @@ const getCashMemo = async (req, res, next) => {
   } catch (e) {
     next(e);
   }
-}
+};
 
 module.exports = {
   getDataForNewInvoice,

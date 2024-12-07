@@ -32,6 +32,61 @@ class Invoice {
     this.delivered = false;
     this.labId = "bhaluka123";
   }
+  
+
+  // Find invoices created in a specific month
+  static async findByMonth(year, month) {
+    try {
+      const db = getClient();
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      const invoices = await db
+        .collection("collection-1")
+        .find({
+          createdAt: { $gte: startDate, $lte: endDate },
+        })
+        .toArray();
+      return invoices;
+    } catch (e) {
+      return handleError(e, "findByMonth");
+    }
+  }
+
+  // Find invoices for a specific date
+  static async findByDate(year, month, day) {
+    try {
+      const db = getClient();
+      const startDate = new Date(year, month - 1, day);
+      const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+      const invoices = await db
+        .collection("collection-1")
+        .find({
+          createdAt: { $gte: startDate, $lte: endDate },
+        })
+        .toArray();
+      return invoices;
+    } catch (e) {
+      return handleError(e, "findByDate");
+    }
+  }
+
+  // Find invoices within a date range
+  static async findByDateRange(start, end) {
+    try {
+      const db = getClient();
+      const startDate = parseInt(start);
+      const endDate = parseInt(end);
+      const invoices = await db
+        .collection("collection-1")
+        .find({
+          invoiceId: { $gte: startDate, $lte: endDate },
+        })
+        .toArray();
+      return invoices;
+    } catch (e) {
+      return handleError(e, "findByDateRange");
+    }
+  }
 
   // Create invoice
   static async insertOne(doc) {
@@ -80,22 +135,19 @@ class Invoice {
     }
   }
 
-
-    // Update Patient Data
+  // Update Patient Data
   static async updateById(_id, patientData) {
-    const { name, age, contact, gender, doctorName } = patientData
-    const update = {name, age, contact, gender, doctorName}
-      try {
-        const db = getClient();
-        const filter = { _id: new ObjectId(_id) };
-          const result = await db.collection("collection-1").updateOne(filter, { $set: update });
-          return result.modifiedCount === 1 ? true : null
-        
-      } catch (e) {
-        return handleError(e, "updateById");
-      }
+    const { name, age, contact, gender, doctorName } = patientData;
+    const update = { name, age, contact, gender, doctorName };
+    try {
+      const db = getClient();
+      const filter = { _id: new ObjectId(_id) };
+      const result = await db.collection("collection-1").updateOne(filter, { $set: update });
+      return result.modifiedCount === 1 ? true : null;
+    } catch (e) {
+      return handleError(e, "updateById");
     }
-
+  }
 
   // Update invoice actions
   static async updateActions(_id, update) {
