@@ -15,16 +15,16 @@ class User {
     this.name = name;
   }
 
-  static async cashMemo( filter = {}) {
+  static async cashMemo(startDate, endDate) {
     try {
       const db = getClient();
 
       // Apply date filter if provided
       const matchStage = {};
-      if (filter.startDate || filter.endDate) {
+      if (startDate || endDate) {
         matchStage.invoiceId = {};
-        if (filter.startDate) matchStage.invoiceId.$gte = parseInt(filter.startDate);
-        if (filter.endDate) matchStage.invoiceId.$lte = parseInt(filter.endDate);
+        if (startDate) matchStage.invoiceId.$gte = startDate;
+        if (endDate) matchStage.invoiceId.$lte = endDate;
       }
 
       // Aggregation pipeline
@@ -64,7 +64,6 @@ class User {
     }
   }
 
-
   static async getTestListAndReferrerList(userId) {
     try {
       const db = getClient();
@@ -77,8 +76,18 @@ class User {
         : null;
     } catch (e) {
       return handleError(e, "testList => User");
+    } 
+  }
+
+
+  static async getList() {
+    try {
+      
+    } catch (e) {
+      
     }
   }
+
 
   static async testList(userId) {
     try {

@@ -1,8 +1,10 @@
 /** @format */
 
 const { ObjectId } = require("mongodb");
+const {USER_ID} = require('../config');
 
 const Invoice = require("../database/invoice");
+const {generateCurrentDate} = require('../helpers/functions');
 
 // Create a new invoice
 const postInvoice = async (req, res, next) => {
@@ -21,7 +23,7 @@ const postInvoice = async (req, res, next) => {
 };
 
 // All invoices by Date
-const getInvoicesByDate = async (req, res, next) => {
+const getInvoicesByDate2 = async (req, res, next) => {
   try {
     const start = 241206000000;
     const end = 241207235959;
@@ -30,6 +32,35 @@ const getInvoicesByDate = async (req, res, next) => {
       res.status(200).send({ success: true, total: list.length, list });
     } else {
       res.status(400).send({ success: false, msg: "Could not retrive data" });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+
+const getInvoicesByDate = async (req, res, next) => {
+  try {
+    let startDate;
+    let endDate;
+    if (req.query?.startDate === "today" || req.query?.endDate === "today") {
+      const [start, end] = generateCurrentDate();
+      startDate = parseInt(start);
+      endDate = parseInt(end);
+    } else {
+      startDate = parseInt(req.query.startDate) || 0;
+      endDate = parseInt(req.query.endDate) || 0;
+    }
+    if (!startDate || !endDate) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
+    }
+
+    const userId = USER_ID;
+    const list = await Invoice.findByDateRange(startDate, endDate); // Fetch cashmemo
+    if (list) {
+      return res.status(200).send({ success: true, list });
+    } else {
+      return res.status(400).send({ success: false });
     }
   } catch (e) {
     next(e);

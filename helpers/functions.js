@@ -42,7 +42,19 @@ const generateDate = () => {
   const year = now.getFullYear();
 
   // Format the date
-  return parseInt(`${day}${suffix}${month}${year}`)
+  return `${day}${suffix}${month}${year}`;
 };
 
-module.exports = { generateInvoiceId, generateDate };
+const generateCurrentDate = () => {
+  const now = new Date();
+  const year = String(now.getFullYear() % 100).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  const start = `${year}${month}${day}000000`;
+  const end = `${year}${month}${day}235959`;
+
+  return [start, end];
+};
+
+module.exports = { generateInvoiceId, generateDate, generateCurrentDate };

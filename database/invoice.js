@@ -32,7 +32,6 @@ class Invoice {
     this.delivered = false;
     this.labId = "bhaluka123";
   }
-  
 
   // Find invoices created in a specific month
   static async findByMonth(year, month) {
@@ -78,11 +77,9 @@ class Invoice {
       const endDate = parseInt(end);
       const invoices = await db
         .collection("collection-1")
-        .find({
-          invoiceId: { $gte: startDate, $lte: endDate },
-        })
+        .find({ invoiceId: { $gte: startDate, $lte: endDate } })
         .toArray();
-      return invoices;
+      return invoices ? invoices : null;
     } catch (e) {
       return handleError(e, "findByDateRange");
     }

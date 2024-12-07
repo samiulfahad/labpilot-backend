@@ -2,6 +2,9 @@
 
 const { USER_ID } = require("../config"); // Configuration for user ID
 const { ObjectId } = require("mongodb"); // MongoDB ObjectId validation utility
+
+const { generateCurrentDate } = require("../helpers/functions");
+
 const User = require("../database/user"); // User database operations
 
 /**
@@ -167,9 +170,25 @@ const getReferrerList = async (req, res, next) => {
 
 const getCashMemo = async (req, res, next) => {
   try {
-    const filter = { startDate: 241206000000, endDate: 241206235959 };
+    let startDate;
+    let endDate;
+    console.log(req.query);
+    if (req.query?.startDate === "today" || req.query?.endDate === "today") {
+      const [start, end] = generateCurrentDate();
+      startDate = parseInt(start);
+      endDate = parseInt(end);
+    } else {
+      startDate = parseInt(req.query.startDate) || 0;
+      endDate = parseInt(req.query.endDate) || 0;
+    }
+    console.log(startDate);
+    console.log(endDate);
+    
+    if (!startDate || !endDate) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
+    }
     const userId = USER_ID;
-    const cashMemo = await User.cashMemo(filter); // Fetch cashmemo
+    const cashMemo = await User.cashMemo(startDate, endDate); // Fetch cashmemo
     if (cashMemo) {
       return res.status(200).send({ success: true, cashMemo });
     } else {
@@ -179,6 +198,8 @@ const getCashMemo = async (req, res, next) => {
     next(e);
   }
 };
+
+
 
 module.exports = {
   getDataForNewInvoice,
