@@ -39,6 +39,35 @@ const getInvoicesByDate2 = async (req, res, next) => {
 };
 
 
+const getCashMemoWithInvoices = async (req, res, next) => {
+  try {
+    let startDate;
+    let endDate;
+    if (req.query?.startDate === "today" || req.query?.endDate === "today") {
+      const [start, end] = generateCurrentDate();
+      startDate = parseInt(start);
+      endDate = parseInt(end);
+    } else {
+      startDate = parseInt(req.query.startDate) || 0;
+      endDate = parseInt(req.query.endDate) || 0;
+    }
+    if (!startDate || !endDate) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
+    }
+
+    const userId = USER_ID;
+    const list = await Invoice.cashMemoWithInvoices(startDate, endDate); // Fetch cashmemo
+    if (list) {
+      return res.status(200).send({ success: true, list });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+
 const getInvoicesByDate = async (req, res, next) => {
   try {
     let startDate;
@@ -205,6 +234,7 @@ const dropCollection = async (req, res, next) => {
 
 module.exports = {
   postInvoice,
+  getCashMemoWithInvoices,
   putActions,
   putPatientData,
   getInvoiceById,
