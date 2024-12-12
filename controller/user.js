@@ -181,8 +181,6 @@ const getCashMemo = async (req, res, next) => {
       startDate = parseInt(req.query.startDate) || 0;
       endDate = parseInt(req.query.endDate) || 0;
     }
-    console.log(startDate);
-    console.log(endDate);
     
     if (!startDate || !endDate) {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
@@ -200,10 +198,40 @@ const getCashMemo = async (req, res, next) => {
 };
 
 
+const getCommissionTracker = async (req, res, next) => {
+  try {
+    let startDate;
+    let endDate;
+    if (req.query?.startDate === "today" || req.query?.endDate === "today") {
+      const [start, end] = generateCurrentDate();
+      startDate = parseInt(start);
+      endDate = parseInt(end);
+    } else {
+      startDate = parseInt(req.query.startDate) || 0;
+      endDate = parseInt(req.query.endDate) || 0;
+    }
+    
+    if (!startDate || !endDate) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
+    }
+    const userId = USER_ID;
+    const commissionTracker = await User.commissionTracker(startDate, endDate); // Fetch commissionTracker
+    if (commissionTracker) {
+      return res.status(200).send({ success: true, commissionTracker });
+    } else {
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+
 
 module.exports = {
-  getDataForNewInvoice,
   getCashMemo,
+  getCommissionTracker,
+  getDataForNewInvoice,
   getTestList,
   getReferrerList,
   postReferrer,

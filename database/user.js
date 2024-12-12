@@ -143,6 +143,165 @@ class User {
     }
   }
 
+
+  static async commissionTracker(startDate, endDate) {
+    try {
+      const db = getClient();
+      const result = await db.collection("collection-1").aggregate([
+        // Filter invoices by invoiceId range (reflecting the date range)
+        {
+          $match: {
+            invoiceId: { $gte: startDate, $lte: endDate }
+          }
+        },
+        // Group by referrerId and calculate totalInvoice and totalCommission
+        {
+          $group: {
+            _id: "$referrerId",
+            totalInvoice: { $sum: 1 },
+            totalCommission: { $sum: "$commission" }
+          }
+        },
+        // Join with users collection to get referrer details
+        {
+          $lookup: {
+            from: "users", // The users collection
+            let: { referrerId: "$_id" },
+            pipeline: [
+              { $unwind: "$referrerList" },
+              { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
+              { $project: { "referrerList.name": 1, "referrerList.isDoctor": 1 } }
+            ],
+            as: "referrerDetails"
+          }
+        },
+        // Flatten the referrerDetails array
+        {
+          $unwind: "$referrerDetails"
+        },
+        // Project the final output
+        {
+          $project: {
+            _id: 0,
+            referrerId: "$_id",
+            name: "$referrerDetails.referrerList.name",
+            isDoctor: "$referrerDetails.referrerList.isDoctor",
+            totalInvoice: 1,
+            totalCommission: 1
+          }
+        }
+      ]).toArray();
+  
+      console.log(result);
+      return result;
+    } catch (e) {
+      return handleError(e, "commissionTracker");
+    }
+  }
+
+
+  static async commissionTrackerWithTests(startDate, endDate) {
+    try {
+      const db = getClient();
+  
+      const result = await db.collection("collection-1").aggregate([
+        // Filter invoices by invoiceId range
+        {
+          $match: {
+            invoiceId: { $gte: startDate, $lte: endDate }
+          }
+        },
+        // Unwind the testList array for individual tests
+        {
+          $unwind: "$testList"
+        },
+        // Group by referrerId and test name, calculate the total count per test
+        {
+          $group: {
+            _id: { referrerId: "$referrerId", testName: "$testList.name" },
+            total: { $sum: 1 }
+          }
+        },
+        // Reshape the output to group tests under each referrer
+        {
+          $group: {
+            _id: "$_id.referrerId",
+            testStats: {
+              $push: {
+                testName: "$_id.testName",
+                total: "$total"
+              }
+            }
+          }
+        },
+        // Add referrer details and totalCommission
+        {
+          $lookup: {
+            from: "users",
+            let: { referrerId: "$_id" },
+            pipeline: [
+              { $unwind: "$referrerList" },
+              { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
+              {
+                $project: {
+                  "referrerList.name": 1,
+                  "referrerList.isDoctor": 1
+                }
+              }
+            ],
+            as: "referrerDetails"
+          }
+        },
+        // Flatten the referrerDetails array
+        {
+          $unwind: "$referrerDetails"
+        },
+        // Add totalCommission field
+        {
+          $lookup: {
+            from: "collection-1",
+            localField: "_id",
+            foreignField: "referrerId",
+            pipeline: [
+              {
+                $group: {
+                  _id: null,
+                  totalCommission: { $sum: "$commission" }
+                }
+              }
+            ],
+            as: "commissionDetails"
+          }
+        },
+        {
+          $unwind: {
+            path: "$commissionDetails",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // Project the final output
+        {
+          $project: {
+            _id: 0,
+            referrerId: "$_id",
+            referrerName: "$referrerDetails.referrerList.name",
+            isDoctor: "$referrerDetails.referrerList.isDoctor",
+            totalCommission: "$commissionDetails.totalCommission",
+            testStats: 1
+          }
+        }
+      ]).toArray();
+  
+      // console.log(result);
+      return result;
+    } catch (e) {
+      return handleError(e, "commissionTrackerWithStaticTests");
+    }
+  }
+  
+
+
+
   static async getTestListAndReferrerList(userId) {
     try {
       const db = getClient();
@@ -156,15 +315,6 @@ class User {
     } catch (e) {
       return handleError(e, "testList => User");
     } 
-  }
-
-
-  static async getList() {
-    try {
-      
-    } catch (e) {
-      
-    }
   }
 
 
@@ -182,6 +332,7 @@ class User {
       return handleError(e, "testList => User");
     }
   }
+
 
   static async updateTestList(userId, testList) {
     try {

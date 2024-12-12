@@ -25,7 +25,7 @@ app.get("/", (req, res, next) => {
 app.get("/api/v1/user/dataForNewInvoice", userController.getDataForNewInvoice);
 
 app.get("/api/v1/user/cashmemo", userController.getCashMemo);
-// app.get("/api/v1/user/cashmemo", invoiceController.getCashMemoWithInvoices);
+app.get("/api/v1/user/commission-tracker", userController.getCommissionTracker);
 
 app.post(
   "/api/v1/invoice/new",
