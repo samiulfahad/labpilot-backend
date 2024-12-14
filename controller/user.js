@@ -172,7 +172,6 @@ const getCashMemo = async (req, res, next) => {
   try {
     let startDate;
     let endDate;
-    console.log(req.query);
     if (req.query?.startDate === "today" || req.query?.endDate === "today") {
       const [start, end] = generateCurrentDate();
       startDate = parseInt(start);
@@ -215,7 +214,7 @@ const getCommissionTracker = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
     const userId = USER_ID;
-    const commissionTracker = await User.commissionTracker(startDate, endDate); // Fetch commissionTracker
+    const commissionTracker = await User.commissionTrackerV1(startDate, endDate); // Fetch commissionTracker
     if (commissionTracker) {
       return res.status(200).send({ success: true, commissionTracker });
     } else {

@@ -15,84 +15,81 @@ class User {
     this.name = name;
   }
 
-
   static async cashMemoWithInvoices(startDate, endDate, page = 1, limit = 50) {
-  try {
-    const db = getClient();
+    try {
+      const db = getClient();
 
-    // Build match stage based on the date range
-    const matchStage = {};
-    if (startDate || endDate) {
-      matchStage.invoiceId = {};
-      if (startDate) matchStage.invoiceId.$gte = parseInt(startDate);
-      if (endDate) matchStage.invoiceId.$lte = parseInt(endDate);
-    }
+      // Build match stage based on the date range
+      const matchStage = {};
+      if (startDate || endDate) {
+        matchStage.invoiceId = {};
+        if (startDate) matchStage.invoiceId.$gte = parseInt(startDate);
+        if (endDate) matchStage.invoiceId.$lte = parseInt(endDate);
+      }
 
-    // Aggregation pipeline for combined data
-    const pipeline = [
-      { $match: matchStage },
-      {
-        $facet: {
-          summary: [
-            {
-              $group: {
-                _id: null,
-                totalSale: { $sum: "$total" },
-                totalLabAdjustment: { $sum: "$labAdjustment" },
-                totalReferrerDiscount: { $sum: "$discount" },
-                totalCommission: { $sum: "$commission" },
-                totalReceived: { $sum: "$paid" },
-                totalNetAmount: { $sum: "$netAmount" },
-                totalInvoice: { $count: {} },
+      // Aggregation pipeline for combined data
+      const pipeline = [
+        { $match: matchStage },
+        {
+          $facet: {
+            summary: [
+              {
+                $group: {
+                  _id: null,
+                  totalSale: { $sum: "$total" },
+                  totalLabAdjustment: { $sum: "$labAdjustment" },
+                  totalReferrerDiscount: { $sum: "$discount" },
+                  totalCommission: { $sum: "$commission" },
+                  totalReceived: { $sum: "$paid" },
+                  totalNetAmount: { $sum: "$netAmount" },
+                  totalInvoice: { $count: {} },
+                },
               },
-            },
-          ],
-          invoices: [
-            { $skip: (page - 1) * limit },
-            { $limit: limit },
-            {
-              $project: {
-                _id: 0, // Exclude MongoDB internal ID if not needed
-                invoiceId: 1,
-                name: 1,
-                testList: 1,
-                total: 1,
-                discount: 1,
-                labAdjustment: 1,
-                netAmount: 1,
-                paid: 1,
-                commission: 1,
+            ],
+            invoices: [
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+              {
+                $project: {
+                  _id: 0, // Exclude MongoDB internal ID if not needed
+                  invoiceId: 1,
+                  name: 1,
+                  testList: 1,
+                  total: 1,
+                  discount: 1,
+                  labAdjustment: 1,
+                  netAmount: 1,
+                  paid: 1,
+                  commission: 1,
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-    ];
+      ];
 
-    const result = await db.collection("collection-1").aggregate(pipeline).toArray();
+      const result = await db.collection("collection-1").aggregate(pipeline).toArray();
 
-    // Format the final result
-    const summary = result[0]?.summary[0] || {};
-    const invoices = result[0]?.invoices || [];
+      // Format the final result
+      const summary = result[0]?.summary[0] || {};
+      const invoices = result[0]?.invoices || [];
 
-    return {
-      cashMemo: {
-        totalSale: summary.totalSale || 0,
-        totalLabAdjustment: summary.totalLabAdjustment || 0,
-        totalReferrerDiscount: summary.totalReferrerDiscount || 0,
-        totalCommission: summary.totalCommission || 0,
-        totalReceived: summary.totalReceived || 0,
-        totalNetAmount: summary.totalNetAmount || 0,
-        totalInvoice: summary.totalInvoice || 0,
-      },
-      invoices,
-    };
-  } catch (e) {
-    return handleError(e, "cashMemoWithInvoices");
+      return {
+        cashMemo: {
+          totalSale: summary.totalSale || 0,
+          totalLabAdjustment: summary.totalLabAdjustment || 0,
+          totalReferrerDiscount: summary.totalReferrerDiscount || 0,
+          totalCommission: summary.totalCommission || 0,
+          totalReceived: summary.totalReceived || 0,
+          totalNetAmount: summary.totalNetAmount || 0,
+          totalInvoice: summary.totalInvoice || 0,
+        },
+        invoices,
+      };
+    } catch (e) {
+      return handleError(e, "cashMemoWithInvoices");
+    }
   }
-}
-
-
 
   static async cashMemo(startDate, endDate) {
     try {
@@ -143,64 +140,8 @@ class User {
     }
   }
 
-
-  static async commissionTracker(startDate, endDate) {
-    try {
-      const db = getClient();
-      const result = await db.collection("collection-1").aggregate([
-        // Filter invoices by invoiceId range (reflecting the date range)
-        {
-          $match: {
-            invoiceId: { $gte: startDate, $lte: endDate }
-          }
-        },
-        // Group by referrerId and calculate totalInvoice and totalCommission
-        {
-          $group: {
-            _id: "$referrerId",
-            totalInvoice: { $sum: 1 },
-            totalCommission: { $sum: "$commission" }
-          }
-        },
-        // Join with users collection to get referrer details
-        {
-          $lookup: {
-            from: "users", // The users collection
-            let: { referrerId: "$_id" },
-            pipeline: [
-              { $unwind: "$referrerList" },
-              { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
-              { $project: { "referrerList.name": 1, "referrerList.isDoctor": 1 } }
-            ],
-            as: "referrerDetails"
-          }
-        },
-        // Flatten the referrerDetails array
-        {
-          $unwind: "$referrerDetails"
-        },
-        // Project the final output
-        {
-          $project: {
-            _id: 0,
-            referrerId: "$_id",
-            name: "$referrerDetails.referrerList.name",
-            isDoctor: "$referrerDetails.referrerList.isDoctor",
-            totalInvoice: 1,
-            totalCommission: 1
-          }
-        }
-      ]).toArray();
-  
-      console.log(result);
-      return result;
-    } catch (e) {
-      return handleError(e, "commissionTracker");
-    }
-  }
-
-
-  static async commissionTrackerWithTests(startDate, endDate) {
+  // Version 1 (Without totalInvoice of each referrer)
+  static async commissionTrackerV1(startDate, endDate) {
     try {
       const db = getClient();
   
@@ -209,6 +150,14 @@ class User {
         {
           $match: {
             invoiceId: { $gte: startDate, $lte: endDate }
+          }
+        },
+        // Select relevant fields before unwinding to reduce data size
+        {
+          $project: {
+            referrerId: 1,
+            testList: 1,
+            commission: 1
           }
         },
         // Unwind the testList array for individual tests
@@ -226,7 +175,7 @@ class User {
         {
           $group: {
             _id: "$_id.referrerId",
-            testStats: {
+            testList: {
               $push: {
                 testName: "$_id.testName",
                 total: "$total"
@@ -234,7 +183,7 @@ class User {
             }
           }
         },
-        // Add referrer details and totalCommission
+        // Add referrer details and totalCommission using $lookup
         {
           $lookup: {
             from: "users",
@@ -256,13 +205,18 @@ class User {
         {
           $unwind: "$referrerDetails"
         },
-        // Add totalCommission field
+        // Add totalCommission field using $lookup, optimized to avoid unnecessary queries
         {
           $lookup: {
             from: "collection-1",
             localField: "_id",
             foreignField: "referrerId",
             pipeline: [
+              {
+                $match: {
+                  invoiceId: { $gte: startDate, $lte: endDate }
+                }
+              },
               {
                 $group: {
                   _id: null,
@@ -279,28 +233,163 @@ class User {
             preserveNullAndEmptyArrays: true
           }
         },
-        // Project the final output
+        // Project the final output, reduce unnecessary data
         {
           $project: {
             _id: 0,
             referrerId: "$_id",
-            referrerName: "$referrerDetails.referrerList.name",
+            name: "$referrerDetails.referrerList.name",
             isDoctor: "$referrerDetails.referrerList.isDoctor",
             totalCommission: "$commissionDetails.totalCommission",
-            testStats: 1
+            testList: 1
           }
         }
       ]).toArray();
   
-      // console.log(result);
+      console.log(result);
       return result;
     } catch (e) {
-      return handleError(e, "commissionTrackerWithStaticTests");
+      return handleError(e, "commissionTrackerV1");
     }
   }
   
 
 
+
+
+
+  // Version 2 (With totalInvoice of each referrer)
+  static async commissionTrackerV2(startDate, endDate) {
+    try {
+      const db = getClient();
+
+      // Step 1: Get the invoice count for each referrerId
+      const invoiceCountResult = await db
+        .collection("collection-1")
+        .aggregate([
+          {
+            $match: {
+              invoiceId: { $gte: startDate, $lte: endDate },
+            },
+          },
+          {
+            $group: {
+              _id: "$referrerId",
+              totalInvoice: { $sum: 1 }, // Count the total invoices for each referrerId
+            },
+          },
+        ])
+        .toArray();
+
+      // Convert the invoice count result into a map for easy lookup
+      const invoiceCountMap = invoiceCountResult.reduce((acc, item) => {
+        acc[item._id] = item.totalInvoice;
+        return acc;
+      }, {});
+
+      // Step 2: Run the main aggregation to get commission and test details
+      const commissionResult = await db
+        .collection("collection-1")
+        .aggregate([
+          {
+            $match: {
+              invoiceId: { $gte: startDate, $lte: endDate },
+            },
+          },
+          {
+            $unwind: "$testList",
+          },
+          {
+            $group: {
+              _id: { referrerId: "$referrerId", testName: "$testList.name" },
+              total: { $sum: 1 },
+            },
+          },
+          {
+            $group: {
+              _id: "$_id.referrerId",
+              testList: {
+                $push: {
+                  testName: "$_id.testName",
+                  total: "$total",
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              let: { referrerId: "$_id" },
+              pipeline: [
+                { $unwind: "$referrerList" },
+                { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
+                {
+                  $project: {
+                    "referrerList.name": 1,
+                    "referrerList.isDoctor": 1,
+                  },
+                },
+              ],
+              as: "referrerDetails",
+            },
+          },
+          {
+            $unwind: "$referrerDetails",
+          },
+          {
+            $lookup: {
+              from: "collection-1",
+              localField: "_id",
+              foreignField: "referrerId",
+              pipeline: [
+                {
+                  $group: {
+                    _id: null,
+                    totalCommission: { $sum: "$commission" },
+                  },
+                },
+              ],
+              as: "commissionDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$commissionDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              referrerId: "$_id",
+              name: "$referrerDetails.referrerList.name",
+              isDoctor: "$referrerDetails.referrerList.isDoctor",
+              totalCommission: "$commissionDetails.totalCommission",
+              testList: 1,
+            },
+          },
+        ])
+        .toArray();
+
+      // Step 3: Merge the invoice count into the commission result
+      const finalResult = commissionResult.map((item) => {
+        // Add the invoice count from the invoiceCountMap (if available)
+        const totalInvoice = invoiceCountMap[item.referrerId] || 0;
+
+        return {
+          ...item,
+          totalInvoice, // Add the totalInvoice count to the result
+        };
+      });
+
+      console.log(finalResult);
+      return finalResult;
+    } catch (e) {
+      return handleError(e, "commissionTrackerWithStaticTests");
+    }
+  }
+
+  
 
   static async getTestListAndReferrerList(userId) {
     try {
@@ -314,9 +403,8 @@ class User {
         : null;
     } catch (e) {
       return handleError(e, "testList => User");
-    } 
+    }
   }
-
 
   static async testList(userId) {
     try {
@@ -332,7 +420,6 @@ class User {
       return handleError(e, "testList => User");
     }
   }
-
 
   static async updateTestList(userId, testList) {
     try {
