@@ -84,8 +84,15 @@ const getInvoicesByDate = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
 
-    const userId = USER_ID;
-    const list = await Invoice.findByDateRange(startDate, endDate); // Fetch cashmemo
+    let referrerId = null
+    if (req.query.referrerId) {
+      if (!ObjectId.isValid(req.query.referrerId)) {
+        return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
+      } else {
+        referrerId = req.query.referrerId
+      }
+    }
+    const list = await Invoice.findByDateRange(startDate, endDate, referrerId); // Fetch cashmemo
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -234,7 +241,6 @@ const dropCollection = async (req, res, next) => {
 
 module.exports = {
   postInvoice,
-  getCashMemoWithInvoices,
   putActions,
   putPatientData,
   getInvoiceById,

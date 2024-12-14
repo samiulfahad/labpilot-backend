@@ -246,7 +246,7 @@ class User {
         }
       ]).toArray();
   
-      console.log(result);
+      // console.log(result);
       return result;
     } catch (e) {
       return handleError(e, "commissionTrackerV1");
@@ -382,12 +382,35 @@ class User {
         };
       });
 
-      console.log(finalResult);
+      // console.log(finalResult);
       return finalResult;
     } catch (e) {
       return handleError(e, "commissionTrackerWithStaticTests");
     }
   }
+
+
+
+
+
+
+  static async getInvoicesByReferrerId(referrerId, startDate, endDate) {
+    try {
+      const db = getClient();
+      const result = await db
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrerList: 1, _id: 0 } });
+      // console.log(result);
+      return result.testList && result.referrerList
+        ? { testList: result.testList, referrerList: result.referrerList }
+        : null;
+    } catch (e) {
+      return handleError(e, "testList => User");
+    }
+  }
+
+
+
 
   
 

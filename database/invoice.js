@@ -33,131 +33,35 @@ class Invoice {
     this.labId = "bhaluka123";
   }
 
-
-  static async cashMemoWithInvoices(startDate, endDate, page = 1, limit = 50) {
+  static async findByDateRange(start, end, referrerId = null) {
     try {
       const db = getClient();
-  
-      // Build match stage based on the date range
-      const matchStage = {};
-      if (startDate || endDate) {
-        matchStage.invoiceId = {};
-        if (startDate) matchStage.invoiceId.$gte = parseInt(startDate);
-        if (endDate) matchStage.invoiceId.$lte = parseInt(endDate);
-      }
-  
-      // Aggregation pipeline for combined data
-      const pipeline = [
-        { $match: matchStage },
-        {
-          $facet: {
-            summary: [
-              {
-                $group: {
-                  _id: null,
-                  totalSale: { $sum: "$total" },
-                  totalLabAdjustment: { $sum: "$labAdjustment" },
-                  totalReferrerDiscount: { $sum: "$discount" },
-                  totalCommission: { $sum: "$commission" },
-                  totalReceived: { $sum: "$paid" },
-                  totalNetAmount: { $sum: "$netAmount" },
-                  totalInvoice: { $count: {} },
-                },
-              },
-            ],
-            invoices: [
-              { $skip: (page - 1) * limit },
-              { $limit: limit },
-              {
-                $project: {
-                  _id: 0, // Exclude MongoDB internal ID if not needed
-                  invoiceId: 1,
-                  name: 1,
-                  testList: 1,
-                  total: 1,
-                  discount: 1,
-                  labAdjustment: 1,
-                  netAmount: 1,
-                  paid: 1,
-                  commission: 1,
-                },
-              },
-            ],
-          },
-        },
-      ];
-  
-      const result = await db.collection("collection-1").aggregate(pipeline).toArray();
-  
-      // Format the final result
-      const summary = result[0]?.summary[0] || {};
-      const invoices = result[0]?.invoices || [];
-  
-      return {
-        cashMemo: {
-          totalSale: summary.totalSale || 0,
-          totalLabAdjustment: summary.totalLabAdjustment || 0,
-          totalReferrerDiscount: summary.totalReferrerDiscount || 0,
-          totalCommission: summary.totalCommission || 0,
-          totalReceived: summary.totalReceived || 0,
-          totalNetAmount: summary.totalNetAmount || 0,
-          totalInvoice: summary.totalInvoice || 0,
-        },
-        invoices,
-      };
-    } catch (e) {
-      return handleError(e, "cashMemoWithInvoices");
-    }
-  }
-  
 
-
-  // Find invoices created in a specific month
-  static async findByMonth(year, month) {
-    try {
-      const db = getClient();
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-      const invoices = await db
-        .collection("collection-1")
-        .find({
-          createdAt: { $gte: startDate, $lte: endDate },
-        })
-        .toArray();
-      return invoices;
-    } catch (e) {
-      return handleError(e, "findByMonth");
-    }
-  }
-
-  // Find invoices for a specific date
-  static async findByDate(year, month, day) {
-    try {
-      const db = getClient();
-      const startDate = new Date(year, month - 1, day);
-      const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
-      const invoices = await db
-        .collection("collection-1")
-        .find({
-          createdAt: { $gte: startDate, $lte: endDate },
-        })
-        .toArray();
-      return invoices;
-    } catch (e) {
-      return handleError(e, "findByDate");
-    }
-  }
-
-  // Find invoices within a date range
-  static async findByDateRange(start, end) {
-    try {
-      const db = getClient();
       const startDate = parseInt(start);
       const endDate = parseInt(end);
-      const invoices = await db
-        .collection("collection-1")
-        .find({ invoiceId: { $gte: startDate, $lte: endDate } })
-        .toArray();
+
+      // Construct the query
+      const query = {
+        invoiceId: { $gte: startDate, $lte: endDate },
+      };
+      // Add referrerId to query if provided
+      if (referrerId) {
+        query.referrerId = referrerId
+      }
+      // console.log(query);
+      let projection = {
+        invoiceId: 1,
+        total: 1,
+        commission: 1,
+        discount: 1,
+        labAdjustment: 1,
+        netAmount: 1,
+        paid: 1,
+        "testList.name": 1,
+      };
+      // Fetch invoices with the query and projection
+      const invoices = await db.collection("collection-1").find(query).project(projection).toArray();
+      // console.log(invoices);
       return invoices ? invoices : null;
     } catch (e) {
       return handleError(e, "findByDateRange");
