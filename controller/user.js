@@ -31,7 +31,12 @@ const getDataForNewInvoice = async (req, res, next) => {
 const getTestList = async (req, res, next) => {
   try {
     const userId = USER_ID;
-    const list = await User.testList(userId); // Fetch test list
+    let project
+    if (req.query.uploadReport ===1) {
+      console.log(req.query);
+      project = {_id:1, code: 1, name: 1, description:1}
+    }
+    const list = await User.testList(userId, project); // Fetch test list
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {

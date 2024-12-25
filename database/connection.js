@@ -15,6 +15,7 @@ async function connect() {
       await client.connect()
       console.log("Database Connection opened")
     }
+    
     return client.db(dbName)
   } catch (err) {
     throw new Error(`Error connecting to the database: ${err}`)
