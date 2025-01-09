@@ -80,12 +80,49 @@ class Invoice {
   }
 
   // Find invoice by id
-  static async findById(id) {
+  static async findById(id, referrerName) {
+    const userId = "675097ebd9d252419e9a7e98"
     try {
       const db = getClient();
       const invoice = await db.collection("collection-1").findOne({ _id: new ObjectId(id) });
       // console.log(invoice);
-      return invoice ? invoice : null;
+      let referrer
+      if (invoice && referrerName) {
+        referrer = await db.collection('users').aggregate([
+          {
+            $match: { _id: new ObjectId(userId) } // Match the specific user document
+          },
+          {
+            $project: {
+              referrerName: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$referrerList",
+                      as: "referrer",
+                      cond: {
+                        $eq: ["$$referrer._id", new ObjectId(invoice.referrerId)]
+                      }
+                    }
+                  },
+                  0
+                ]
+              }
+            }
+          },
+          {
+            $project: {
+              referrerName: "$referrerName.name" // Project only the 'name' field
+            }
+          }
+        ]).toArray();
+      
+        referrer = referrer.length > 0 ? referrer[0].referrerName : "NOT AVAILABLE";
+
+      }
+      
+
+      return invoice ? {...invoice, referrerName: referrer} : null;
     } catch (e) {
       return handleError(e, "findById");
     }

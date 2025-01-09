@@ -116,9 +116,10 @@ const getInvoiceById = async (req, res, next) => {
     if (!ObjectId.isValid(_id)) {
       return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
     }
-
-    const invoice = await Invoice.findById(_id);
+    const referrerName = req.query.referrerName || null
+    const invoice = await Invoice.findById(_id, referrerName);
     // console.log(invoice);
+
     if (invoice) {
       res.status(200).send({ success: true, invoice });
     } else {
