@@ -425,7 +425,7 @@ class User {
         ? { testList: result.testList, referrerList: result.referrerList }
         : null;
     } catch (e) {
-      return handleError(e, "testList => User");
+      return handleError(e, "getTestListAndReferrerList => user => database");
     }
   }
 

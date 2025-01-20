@@ -77,7 +77,8 @@ content-type: application/json
 {
    "labName": "Azizul Haque diagonostic Center",
    "contact": "01723xxxxxx",
-   "email": "az15624@gmail.com"
+   "email": "az15624@gmail.com",
+   "testList": []
 
 }
 
@@ -87,7 +88,7 @@ POST http://localhost:3000/api/v1/system/test/add HTTP/1.1
 content-type: application/json
 
 {
-   "name": "Test 8",
+   "name": "Test 7",
    "code": "sgs",
    "description": "description for colonoscopy",
    "type": 1,
