@@ -31,10 +31,10 @@ const getDataForNewInvoice = async (req, res, next) => {
 const getTestList = async (req, res, next) => {
   try {
     const userId = USER_ID;
-    let project
-    if (req.query.uploadReport ===1) {
+    let project;
+    if (req.query.uploadReport === 1) {
       console.log(req.query);
-      project = {_id:1, code: 1, name: 1, description:1}
+      project = { _id: 1, code: 1, name: 1, description: 1 };
     }
     const list = await User.testList(userId, project); // Fetch test list
     if (list) {
@@ -185,7 +185,7 @@ const getCashMemo = async (req, res, next) => {
       startDate = parseInt(req.query.startDate) || 0;
       endDate = parseInt(req.query.endDate) || 0;
     }
-    
+
     if (!startDate || !endDate) {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
@@ -201,7 +201,6 @@ const getCashMemo = async (req, res, next) => {
   }
 };
 
-
 const getCommissionTracker = async (req, res, next) => {
   try {
     let startDate;
@@ -214,7 +213,7 @@ const getCommissionTracker = async (req, res, next) => {
       startDate = parseInt(req.query.startDate) || 0;
       endDate = parseInt(req.query.endDate) || 0;
     }
-    
+
     if (!startDate || !endDate) {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
@@ -256,9 +255,20 @@ const getInvoicesByReferrer = async (req, res, next) => {
   } catch (e) {
     next(e);
   }
-}
+};
 
-
+const postUser = async (req, res, next) => {
+  try {
+    const { username, password, email } = req.body.credentials;
+    console.log(username, password, email);
+    const { name, contactNo, nidCardNo, designation, joiningDate } = req.body.personalInfo;
+    if (!username || !password || !email) {
+      return res.status(400).send({ success: false, msg: "Missing Required Fields" });
+    } else {
+      return res.status(201).send({ success: true, username, password, email, name, nidCardNo, contactNo});
+    }
+  } catch (e) {}
+};
 
 module.exports = {
   getCashMemo,
@@ -270,4 +280,5 @@ module.exports = {
   putReferrer,
   putTest,
   putTestList,
+  postUser,
 };

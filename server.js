@@ -53,6 +53,7 @@ app.get("/api/v1/system/test/all", systemController.getAllTest);
 app.post("/api/v1/system/test/add", systemController.postTest);
 
 app.get("/api/v1/user/test/all", userController.getTestList);
+app.post("/api/v1/user/user-management", userController.postUser)
 app.post("/api/v1/user/referrer/add", userController.postReferrer);
 app.put("/api/v1/user/referrer/edit", userController.putReferrer);
 app.get("/api/v1/user/referrer/all", userController.getReferrerList);
