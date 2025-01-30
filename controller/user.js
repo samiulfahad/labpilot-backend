@@ -259,13 +259,34 @@ const getInvoicesByReferrer = async (req, res, next) => {
 
 const postUser = async (req, res, next) => {
   try {
-    const { username, password, email } = req.body.credentials;
-    console.log(username, password, email);
+    const userId = USER_ID;
+    const { username, password, email, accessControl } = req.body.credentials;
+    // console.log(accessControl);
     const { name, contactNo, nidCardNo, designation, joiningDate } = req.body.personalInfo;
-    if (!username || !password || !email) {
+    if (!username || !password || !email || accessControl.length === 0) {
       return res.status(400).send({ success: false, msg: "Missing Required Fields" });
+    }
+    const result = await User.addUser(userId, username, email, password, accessControl);
+    if (result.duplicateUser) {
+      return res.status(200).send({ duplicateUser: true });
+    } else if (result) {
+      return res.status(201).send({ success: true });
     } else {
-      return res.status(201).send({ success: true, username, password, email, name, nidCardNo, contactNo});
+      return res.status(400).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
+const getUsers = async (req, res, next) => {
+  try {
+    const userId = USER_ID;
+    const users = await User.getUserlist(userId);
+    if (users) {
+      return res.status(200).send({ success: true, users });
+    } else {
+      return res.status(400).send({ success: false });
     }
   } catch (e) {}
 };
@@ -281,4 +302,5 @@ module.exports = {
   putTest,
   putTestList,
   postUser,
+  getUsers
 };

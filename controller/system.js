@@ -8,7 +8,7 @@ const postUser = async (req, res, next) => {
     return res.status(400).send({ success: false, msg: "Missing required fields" });
   }
   try {
-    const user = { labName, contact, email, testList: [], referrerList: [] };
+    const user = { labName, contact, email, testList: [], referrerList: [], userList:[] };
     const result = await System.createUser(user);
     if (result) {
       return res.status(201).send({ success: true });

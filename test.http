@@ -75,7 +75,7 @@ POST http://localhost:3000/api/v1/system/user/add HTTP/1.1
 content-type: application/json
 
 {
-   "labName": "Azizul Haque diagonostic Center",
+   "labName": "Phoenix Diagonostic Center",
    "contact": "01723xxxxxx",
    "email": "az15624@gmail.com",
    "testList": []
