@@ -22,10 +22,6 @@ app.use(cors());
 app.get("/", (req, res, next) => {
   res.status(200).send({ success: true, msg: "Server is running" });
 });
-app.get("/api/v1/user/dataForNewInvoice", userController.getDataForNewInvoice);
-
-app.get("/api/v1/user/cashmemo", userController.getCashMemo);
-app.get("/api/v1/user/commission-tracker", userController.getCommissionTracker);
 
 app.post(
   "/api/v1/invoice/new",
@@ -34,6 +30,7 @@ app.post(
   handleValidationErrors,
   invoiceController.postInvoice
 );
+
 app.get("/api/v1/invoice", invoiceController.getInvoiceById);
 app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
 app.get("/api/v1/invoice/render-list", invoiceController.getInvoicesByDate);
@@ -48,18 +45,24 @@ app.put(
 app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
-app.post("/api/v1/system/user/add", systemController.postUser);
+
+app.get("/api/v1/lab/dataForNewInvoice", userController.getDataForNewInvoice);
+app.get("/api/v1/lab/cashmemo", userController.getCashMemo);
+app.get("/api/v1/lab/commission-tracker", userController.getCommissionTracker);
+app.get("/api/v1/lab/test/all", userController.getTestList);
+app.post("/api/v1/lab/staff-management", userController.postStaff);
+app.get("/api/v1/lab/staffs", userController.getStaffList);
+app.post("/api/v1/lab/referrer/add", userController.postReferrer);
+app.put("/api/v1/lab/referrer/edit", userController.putReferrer);
+app.get("/api/v1/lab/referrer/all", userController.getReferrerList);
+app.put("/api/v1/lab/test/update", userController.putTest);
+app.put("/api/v1/lab/testlist/update", userController.putTestList);
+
+
 app.get("/api/v1/system/test/all", systemController.getAllTest);
 app.post("/api/v1/system/test/add", systemController.postTest);
+app.post("/api/v1/system/user/add", systemController.postUser);
 
-app.get("/api/v1/user/test/all", userController.getTestList);
-app.post("/api/v1/user/user-management", userController.postUser)
-app.get("/api/v1/user/users", userController.getUsers)
-app.post("/api/v1/user/referrer/add", userController.postReferrer);
-app.put("/api/v1/user/referrer/edit", userController.putReferrer);
-app.get("/api/v1/user/referrer/all", userController.getReferrerList);
-app.put("/api/v1/user/test/update", userController.putTest);
-app.put("/api/v1/user/testlist/update", userController.putTestList);
 
 // 404 Not Found Handler
 app.use((req, res, next) => {

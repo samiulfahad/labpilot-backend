@@ -257,18 +257,17 @@ const getInvoicesByReferrer = async (req, res, next) => {
   }
 };
 
-const postUser = async (req, res, next) => {
+const postStaff = async (req, res, next) => {
   try {
     const userId = USER_ID;
-    const { username, password, email, accessControl } = req.body.credentials;
+    const { username, password, email, accessControl, fullName, contactNo } = req.body;
     // console.log(accessControl);
-    const { name, contactNo, nidCardNo, designation, joiningDate } = req.body.personalInfo;
     if (!username || !password || !email || accessControl.length === 0) {
       return res.status(400).send({ success: false, msg: "Missing Required Fields" });
     }
-    const result = await User.addUser(userId, username, email, password, accessControl);
+    const result = await User.addStaff(userId, username, email, password, accessControl, fullName, contactNo);
     if (result.duplicateUser) {
-      return res.status(200).send({ duplicateUser: true });
+      return res.status(200).send({ duplicateUsername: true });
     } else if (result) {
       return res.status(201).send({ success: true });
     } else {
@@ -279,12 +278,12 @@ const postUser = async (req, res, next) => {
   }
 };
 
-const getUsers = async (req, res, next) => {
+const getStaffList = async (req, res, next) => {
   try {
     const userId = USER_ID;
-    const users = await User.getUserlist(userId);
-    if (users) {
-      return res.status(200).send({ success: true, users });
+    const staffs = await User.getStaffList(userId);
+    if (staffs) {
+      return res.status(200).send({ success: true, staffs });
     } else {
       return res.status(400).send({ success: false });
     }
@@ -301,6 +300,6 @@ module.exports = {
   putReferrer,
   putTest,
   putTestList,
-  postUser,
-  getUsers
+  postStaff,
+  getStaffList,
 };

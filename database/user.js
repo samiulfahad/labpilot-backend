@@ -553,7 +553,7 @@ class User {
     }
   }
 
-  static async addUser(labId, username, email, password, accessControl) {
+  static async addStaff(labId, username, email, password, accessControl, fullName = null, contactNo = null) {
     try {
       const db = getClient(); // Initialize the database connection
       const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
@@ -562,27 +562,29 @@ class User {
         return false; // Lab not found
       }
 
-      // Check if the user already exists in the userList array
-      const userExists = await db.collection("users").findOne({
+      // Check if the username already exists in the userList array
+      const usernameExists = await db.collection("users").findOne({
         _id: new ObjectId(labId),
-        "userList.username": username,
+        "staffList.username": username,
       });
 
-      if (userExists) {
-        return { duplicateUser: true }; // User already exists
+      if (usernameExists) {
+        return { duplicateUsername: true }; // User already exists
       }
 
       // Create new user object
-      const newUser = {
-        _id: new ObjectId(), // Unique ID for the user
+      const newStaff = {
+        _id: new ObjectId(), // Unique ID for the staff
         username,
         email,
         password,
-        accessControl
+        accessControl,
+        fullName,
+        contactNo
       };
 
       // Push new user to the userList array
-      await db.collection("users").updateOne({ _id: new ObjectId(labId) }, { $push: { userList: newUser } });
+      await db.collection("users").updateOne({ _id: new ObjectId(labId) }, { $push: { staffList: newStaff } });
 
       return true; // User added successfully
     } catch (e) {
@@ -590,21 +592,20 @@ class User {
       return false; // Handle errors
     }
   }
-  static async getUserlist(userId) {
+  static async getStaffList(userId) {
     try {
       const db = getClient(); // Initialize the database connection
-  
+
       const result = await db.collection("users").findOne(
         { _id: new ObjectId(userId) }, // Query by user ID
-        { projection: { userList: 1, _id: 0 } } // Project only the userList field
+        { projection: { staffList: 1, _id: 0 } } // Project only the staffList field
       );
-  
-      return result?.userList || null; // Return userList or null if not found
+
+      return result?.staffList || null; // Return staffList or null if not found
     } catch (e) {
-      return handleError(e, "getUserlist => User");
+      return handleError(e, "getStafflist => User");
     }
-  }  
-  
+  }
 }
 
 module.exports = User;
