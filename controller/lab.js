@@ -302,6 +302,32 @@ const putStaff = async (req, res, next) => {
   }
 };
 
+const terminateStaff = async (req, res, next) => {
+  try {
+    const labId = LAB_ID;
+    const { staffId, action } = req.body;
+    if (!staffId) {
+      return res.status(400).send({ success: false, msg: "Missing Required Fields" });
+    }
+    // Validate staffId as a valid MongoDB ObjectId
+    if (!ObjectId.isValid(staffId)) {
+      return res.status(400).send({ success: false, msg: "Staff ID is NOT valid" });
+    }
+    const validAction = ["delete", "deactivate", "reactivate"].includes(action);
+    if (!validAction) {
+      return res.status(400).send({ success: false, msg: "Invalid action type" });
+    }
+    const result = await Lab.terminateStaff(labId, staffId, action);
+    if (result) {
+      return res.status(200).send({ success: true });
+    } else {
+      return res.status(204).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
 const getStaffList = async (req, res, next) => {
   try {
     const labId = LAB_ID;
@@ -326,5 +352,6 @@ module.exports = {
   putTestList,
   postStaff,
   putStaff,
+  terminateStaff,
   getStaffList,
 };

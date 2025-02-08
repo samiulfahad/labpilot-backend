@@ -580,7 +580,7 @@ class Lab {
         password,
         accessControl,
         fullName,
-        contactNo
+        contactNo,
       };
 
       // Push new user to the userList array
@@ -593,69 +593,115 @@ class Lab {
     }
   }
 
-
   static async editStaff(labId, staffId, updatedData) {
     try {
-        const db = getClient(); // Initialize the database connection
-        const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
+      const db = getClient(); // Initialize the database connection
+      const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
 
-        if (!lab) {
-          console.log('Lab NOT found')
-            return false;
-        }
+      if (!lab) {
+        console.log("Lab NOT found");
+        return false;
+      }
 
-        // Check if the staff member exists
-        const staffExists = await db.collection("users").findOne({
-            _id: new ObjectId(labId),
-            "staffList._id": new ObjectId(staffId),
-        });
+      // Check if the staff member exists
+      const staffExists = await db.collection("users").findOne({
+        _id: new ObjectId(labId),
+        "staffList._id": new ObjectId(staffId),
+      });
 
-        if (!staffExists) {
-          console.log('Staff does not exist')
-            return false;
-        }
+      if (!staffExists) {
+        console.log("Staff does not exist");
+        return false;
+      }
 
-        // **** Uncomment the following code to update username ***** //
+      // **** Uncomment the following code to update username ***** //
 
-        // Check if the new username already exists in the staffList (excluding the current staff member)
-        // const usernameExists = await db.collection("users").findOne({
-        //     _id: new ObjectId(labId),
-        //     "staffList": {
-        //         $elemMatch: { username: updatedData.username, _id: { $ne: new ObjectId(staffId) } }
-        //     }
-        // });
+      // Check if the new username already exists in the staffList (excluding the current staff member)
+      // const usernameExists = await db.collection("users").findOne({
+      //     _id: new ObjectId(labId),
+      //     "staffList": {
+      //         $elemMatch: { username: updatedData.username, _id: { $ne: new ObjectId(staffId) } }
+      //     }
+      // });
 
-        // if (usernameExists) {
-        //     return { duplicateUsername: true };
-        // }
+      // if (usernameExists) {
+      //     return { duplicateUsername: true };
+      // }
 
+      // ***** Add the following line to update username, email, password *****  //
 
-        // ***** Add the following line to update username, email, password *****  // 
+      //  "staffList.$.username": updatedData.username,
+      // "staffList.$.email": updatedData.email,
+      // "staffList.$.password": updatedData.password,
 
-        //  "staffList.$.username": updatedData.username,
-        // "staffList.$.email": updatedData.email,
-        // "staffList.$.password": updatedData.password,
+      // Construct the update object
+      let updateFields = {
+        "staffList.$.accessControl": updatedData.accessControl,
+        "staffList.$.fullName": updatedData.fullName,
+        "staffList.$.contactNo": updatedData.contactNo,
+      };
 
-        // Construct the update object
-        let updateFields = {
-            "staffList.$.accessControl": updatedData.accessControl,
-            "staffList.$.fullName": updatedData.fullName,
-            "staffList.$.contactNo": updatedData.contactNo
-        };
+      // Update the staff details in the staffList array
+      const updateResult = await db
+        .collection("users")
+        .updateOne({ _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) }, { $set: updateFields });
 
-        // Update the staff details in the staffList array
-        const updateResult = await db.collection("users").updateOne(
-            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
-            { $set: updateFields }
-        );
-
-        return updateResult.modifiedCount > 0 ? true : false;
+      return updateResult.modifiedCount > 0 ? true : false;
     } catch (e) {
       return handleError(e, "putStaff => Lab");
     }
-}
+  }
 
+  static async terminateStaff(labId, staffId, action) {
+    try {
+      const db = getClient(); // Initialize the database connection
 
+      if (action === "delete") {
+        // Remove staff from the `staffList` array where `_id` matches `staffId`
+        const result = await db
+          .collection("users")
+          .updateOne({ _id: new ObjectId(labId) }, { $pull: { staffList: { _id: new ObjectId(staffId) } } });
+
+        if (result.modifiedCount === 0) {
+          console.log("Staff NOT Found");
+          return false;
+        }
+        return true;
+      }
+      if (action === "deactivate") {
+        // Deactivate staff by adding/modifying the `deactivated` field
+        const result = await db
+          .collection("users")
+          .updateOne(
+            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
+            { $set: { "staffList.$.deactivated": true } }
+          );
+
+        if (result.modifiedCount === 0) {
+          console.log("Staff NOT Found");
+          return false;
+        }
+        return true;
+      }
+      if (action === "reactivate") {
+        // Reactivate staff
+        const result = await db
+          .collection("users")
+          .updateOne(
+            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
+            { $set: { "staffList.$.deactivated": false } }
+          );
+
+        if (result.modifiedCount === 0) {
+          console.log("Staff NOT Found");
+          return false;
+        }
+        return true;
+      }
+    } catch (e) {
+      return handleError(e, "terminateStaff => Lab");
+    }
+  }
 
   static async getStaffList(userId) {
     try {

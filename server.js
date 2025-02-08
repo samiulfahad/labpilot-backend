@@ -51,6 +51,7 @@ app.get("/api/v1/lab/commission-tracker", labController.getCommissionTracker);
 app.get("/api/v1/lab/test/all", labController.getTestList);
 app.post("/api/v1/lab/staff-management/add", labController.postStaff);
 app.put("/api/v1/lab/staff-management/edit", labController.putStaff);
+app.patch("/api/v1/lab/staff-management/terminate", labController.terminateStaff);
 app.get("/api/v1/lab/staffs", labController.getStaffList);
 app.post("/api/v1/lab/referrer/add", labController.postReferrer);
 app.put("/api/v1/lab/referrer/edit", labController.putReferrer);
