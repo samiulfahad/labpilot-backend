@@ -1,19 +1,19 @@
 /** @format */
 
-const { USER_ID } = require("../config"); // Configuration for user ID
+const { LAB_ID } = require("../config"); // Configuration for lab ID
 const { ObjectId } = require("mongodb"); // MongoDB ObjectId validation utility
 
 const { generateCurrentDate } = require("../helpers/functions");
 
-const User = require("../database/user"); // User database operations
+const Lab = require("../database/lab"); // Lab database operations
 
 /**
  * Fetches test list and referrer list for creating a new invoice.
  */
 const getDataForNewInvoice = async (req, res, next) => {
   try {
-    const userId = USER_ID; // Current user ID
-    const result = await User.getTestListAndReferrerList(userId); // Fetch data
+    const labId = LAB_ID; // Current lab ID
+    const result = await Lab.getTestListAndReferrerList(labId); // Fetch data
     if (result) {
       return res.status(200).send({ success: true, testList: result.testList, referrerList: result.referrerList });
     } else {
@@ -26,17 +26,17 @@ const getDataForNewInvoice = async (req, res, next) => {
 };
 
 /**
- * Fetches the test list for a user.
+ * Fetches the test list for a lab
  */
 const getTestList = async (req, res, next) => {
   try {
-    const userId = USER_ID;
+    const labId = LAB_ID;
     let project;
     if (req.query.uploadReport === 1) {
       console.log(req.query);
       project = { _id: 1, code: 1, name: 1, description: 1 };
     }
-    const list = await User.testList(userId, project); // Fetch test list
+    const list = await Lab.testList(labId, project); // Fetch test list
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -65,8 +65,8 @@ const putTest = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
     }
 
-    const userId = USER_ID;
-    const result = await User.updateTest(userId, testId, field, value); // Update test
+    const labId = LAB_ID;
+    const result = await Lab.updateTest(labId, testId, field, value); // Update test
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -78,7 +78,7 @@ const putTest = async (req, res, next) => {
 };
 
 /**
- * Updates the entire test list for a user.
+ * Updates the entire test list for a lab.
  */
 const putTestList = async (req, res, next) => {
   let { testList } = req.body; // Extract test list from request body
@@ -94,8 +94,8 @@ const putTestList = async (req, res, next) => {
       return test;
     });
 
-    const userId = USER_ID;
-    const result = await User.updateTestList(userId, testList); // Update test list
+    const labId = LAB_ID;
+    const result = await Lab.updateTestList(labId, testList); // Update test list
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -107,7 +107,7 @@ const putTestList = async (req, res, next) => {
 };
 
 /**
- * Adds a new referrer to the user's referrer list.
+ * Adds a new referrer to the lab's referrer list.
  */
 const postReferrer = async (req, res, next) => {
   try {
@@ -116,8 +116,8 @@ const postReferrer = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Required field missing" });
     }
 
-    const userId = USER_ID;
-    const result = await User.addReferrer(userId, name, commissionType, commission, isDoctor, description); // Add referrer
+    const labId = LAB_ID;
+    const result = await Lab.addReferrer(labId, name, commissionType, commission, isDoctor, description); // Add referrer
     if (result) {
       return res.status(201).send({ success: true });
     } else {
@@ -144,8 +144,8 @@ const putReferrer = async (req, res, next) => {
     }
 
     const updates = { name, commission, commissionType, isDoctor, description };
-    const userId = USER_ID;
-    const result = await User.updateReferrer(userId, referrerId, updates); // Update referrer
+    const labId = LAB_ID;
+    const result = await Lab.updateReferrer(labId, referrerId, updates); // Update referrer
     if (result) {
       return res.status(200).send({ success: true });
     } else {
@@ -157,12 +157,12 @@ const putReferrer = async (req, res, next) => {
 };
 
 /**
- * Fetches the referrer list for a user.
+ * Fetches the referrer list for a Lab.
  */
 const getReferrerList = async (req, res, next) => {
   try {
-    const userId = USER_ID;
-    const list = await User.referrerList(userId); // Fetch referrer list
+    const labId = LAB_ID;
+    const list = await Lab.referrerList(labId); // Fetch referrer list
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -189,8 +189,8 @@ const getCashMemo = async (req, res, next) => {
     if (!startDate || !endDate) {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
-    const userId = USER_ID;
-    const cashMemo = await User.cashMemo(startDate, endDate); // Fetch cashmemo
+    const labId = LAB_ID;
+    const cashMemo = await Lab.cashMemo(startDate, endDate); // Fetch cashmemo
     if (cashMemo) {
       return res.status(200).send({ success: true, cashMemo });
     } else {
@@ -218,7 +218,7 @@ const getCommissionTracker = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
 
-    const list = await User.commissionTrackerV1(startDate, endDate); // Fetch commissionTracker
+    const list = await Lab.commissionTrackerV1(startDate, endDate); // Fetch commissionTracker
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -246,7 +246,7 @@ const getInvoicesByReferrer = async (req, res, next) => {
       return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
 
-    const list = await User.invoicesByReferrerId(startDate, endDate);
+    const list = await Lab.invoicesByReferrerId(startDate, endDate);
     if (list) {
       return res.status(200).send({ success: true, list });
     } else {
@@ -259,14 +259,14 @@ const getInvoicesByReferrer = async (req, res, next) => {
 
 const postStaff = async (req, res, next) => {
   try {
-    const userId = USER_ID;
+    const labId = LAB_ID;
     const { username, password, email, accessControl, fullName, contactNo } = req.body;
     // console.log(accessControl);
     if (!username || !password || !email || accessControl.length === 0) {
       return res.status(400).send({ success: false, msg: "Missing Required Fields" });
     }
-    const result = await User.addStaff(userId, username, email, password, accessControl, fullName, contactNo);
-    if (result.duplicateUser) {
+    const result = await Lab.addStaff(labId, username, email, password, accessControl, fullName, contactNo);
+    if (result.duplicateUsername) {
       return res.status(200).send({ duplicateUsername: true });
     } else if (result) {
       return res.status(201).send({ success: true });
@@ -278,10 +278,34 @@ const postStaff = async (req, res, next) => {
   }
 };
 
+const putStaff = async (req, res, next) => {
+  try {
+    const labId = LAB_ID;
+    const { username, email, accessControl, fullName, contactNo, staffId } = req.body;
+    // console.log(accessControl);
+    if (!staffId || !email || accessControl.length === 0) {
+      return res.status(400).send({ success: false, msg: "Missing Required Fields" });
+    }
+    // Validate staffId as a valid MongoDB ObjectId
+    if (!ObjectId.isValid(staffId)) {
+      return res.status(400).send({ success: false, msg: "Staff ID is NOT valid" });
+    }
+    const updatedData = { accessControl, fullName, contactNo };
+    const result = await Lab.editStaff(labId, staffId, updatedData);
+    if (result) {
+      return res.status(200).send({ success: true });
+    } else {
+      return res.status(204).send({ success: false });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
 const getStaffList = async (req, res, next) => {
   try {
-    const userId = USER_ID;
-    const staffs = await User.getStaffList(userId);
+    const labId = LAB_ID;
+    const staffs = await Lab.getStaffList(labId);
     if (staffs) {
       return res.status(200).send({ success: true, staffs });
     } else {
@@ -301,5 +325,6 @@ module.exports = {
   putTest,
   putTestList,
   postStaff,
+  putStaff,
   getStaffList,
 };

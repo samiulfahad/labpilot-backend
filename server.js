@@ -5,7 +5,7 @@ const cors = require("cors");
 
 const invoiceController = require("./controller/invoice");
 const systemController = require("./controller/system");
-const userController = require("./controller/user");
+const labController = require("./controller/lab");
 
 const { connect } = require("./database/connection");
 
@@ -41,22 +41,22 @@ app.put(
   handleValidationErrors,
   invoiceController.putPatientData
 );
-
 app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
 
-app.get("/api/v1/lab/dataForNewInvoice", userController.getDataForNewInvoice);
-app.get("/api/v1/lab/cashmemo", userController.getCashMemo);
-app.get("/api/v1/lab/commission-tracker", userController.getCommissionTracker);
-app.get("/api/v1/lab/test/all", userController.getTestList);
-app.post("/api/v1/lab/staff-management", userController.postStaff);
-app.get("/api/v1/lab/staffs", userController.getStaffList);
-app.post("/api/v1/lab/referrer/add", userController.postReferrer);
-app.put("/api/v1/lab/referrer/edit", userController.putReferrer);
-app.get("/api/v1/lab/referrer/all", userController.getReferrerList);
-app.put("/api/v1/lab/test/update", userController.putTest);
-app.put("/api/v1/lab/testlist/update", userController.putTestList);
+app.get("/api/v1/lab/dataForNewInvoice", labController.getDataForNewInvoice);
+app.get("/api/v1/lab/cashmemo", labController.getCashMemo);
+app.get("/api/v1/lab/commission-tracker", labController.getCommissionTracker);
+app.get("/api/v1/lab/test/all", labController.getTestList);
+app.post("/api/v1/lab/staff-management/add", labController.postStaff);
+app.put("/api/v1/lab/staff-management/edit", labController.putStaff);
+app.get("/api/v1/lab/staffs", labController.getStaffList);
+app.post("/api/v1/lab/referrer/add", labController.postReferrer);
+app.put("/api/v1/lab/referrer/edit", labController.putReferrer);
+app.get("/api/v1/lab/referrer/all", labController.getReferrerList);
+app.put("/api/v1/lab/test/update", labController.putTest);
+app.put("/api/v1/lab/testlist/update", labController.putTestList);
 
 
 app.get("/api/v1/system/test/all", systemController.getAllTest);

@@ -10,7 +10,7 @@ const handleError = (e, methodName) => {
   return null;
 };
 
-class User {
+class Lab {
   constructor(name) {
     this.name = name;
   }
@@ -592,6 +592,71 @@ class User {
       return false; // Handle errors
     }
   }
+
+
+  static async editStaff(labId, staffId, updatedData) {
+    try {
+        const db = getClient(); // Initialize the database connection
+        const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
+
+        if (!lab) {
+          console.log('Lab NOT found')
+            return false;
+        }
+
+        // Check if the staff member exists
+        const staffExists = await db.collection("users").findOne({
+            _id: new ObjectId(labId),
+            "staffList._id": new ObjectId(staffId),
+        });
+
+        if (!staffExists) {
+          console.log('Staff does not exist')
+            return false;
+        }
+
+        // **** Uncomment the following code to update username ***** //
+
+        // Check if the new username already exists in the staffList (excluding the current staff member)
+        // const usernameExists = await db.collection("users").findOne({
+        //     _id: new ObjectId(labId),
+        //     "staffList": {
+        //         $elemMatch: { username: updatedData.username, _id: { $ne: new ObjectId(staffId) } }
+        //     }
+        // });
+
+        // if (usernameExists) {
+        //     return { duplicateUsername: true };
+        // }
+
+
+        // ***** Add the following line to update username, email, password *****  // 
+
+        //  "staffList.$.username": updatedData.username,
+        // "staffList.$.email": updatedData.email,
+        // "staffList.$.password": updatedData.password,
+
+        // Construct the update object
+        let updateFields = {
+            "staffList.$.accessControl": updatedData.accessControl,
+            "staffList.$.fullName": updatedData.fullName,
+            "staffList.$.contactNo": updatedData.contactNo
+        };
+
+        // Update the staff details in the staffList array
+        const updateResult = await db.collection("users").updateOne(
+            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
+            { $set: updateFields }
+        );
+
+        return updateResult.modifiedCount > 0 ? true : false;
+    } catch (e) {
+      return handleError(e, "putStaff => Lab");
+    }
+}
+
+
+
   static async getStaffList(userId) {
     try {
       const db = getClient(); // Initialize the database connection
@@ -603,9 +668,9 @@ class User {
 
       return result?.staffList || null; // Return staffList or null if not found
     } catch (e) {
-      return handleError(e, "getStafflist => User");
+      return handleError(e, "getStafflist => Lab");
     }
   }
 }
 
-module.exports = User;
+module.exports = Lab;
