@@ -44,7 +44,7 @@ app.put(
 app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
-
+app.post("/api/v1/lab/login", labController.login);
 app.get("/api/v1/lab/dataForNewInvoice", labController.getDataForNewInvoice);
 app.get("/api/v1/lab/cashmemo", labController.getCashMemo);
 app.get("/api/v1/lab/commission-tracker", labController.getCommissionTracker);

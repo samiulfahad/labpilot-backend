@@ -337,8 +337,20 @@ const getStaffList = async (req, res, next) => {
     } else {
       return res.status(400).send({ success: false });
     }
-  } catch (e) {}
+  } catch (e) {
+    next(e)
+  }
 };
+
+const login = async (req, res, next) => {
+  try {
+    console.log(req.body)
+    
+    res.status(401).send({success: false})
+  } catch (e) {
+    next(e)
+  }
+}
 
 module.exports = {
   getCashMemo,
@@ -354,4 +366,5 @@ module.exports = {
   putStaff,
   terminateStaff,
   getStaffList,
+  login
 };
