@@ -338,19 +338,26 @@ const getStaffList = async (req, res, next) => {
       return res.status(400).send({ success: false });
     }
   } catch (e) {
-    next(e)
+    next(e);
   }
 };
 
 const login = async (req, res, next) => {
   try {
-    console.log(req.body)
-    
-    res.status(401).send({success: false})
+    const { labId, username, password, isAdmin } = req.body;
+    if (!labId || !username || !password  || isAdmin === undefined){
+      return res.send({success: false, msg: "Required field missing"})
+    }
+    // console.log(labId, username, password, isAdmin)
+
+    const result = await Lab.login(parseInt(labId), username, password, isAdmin)
+
+
+    res.status(401).send({ success: false });
   } catch (e) {
-    next(e)
+    next(e);
   }
-}
+};
 
 module.exports = {
   getCashMemo,
@@ -366,5 +373,5 @@ module.exports = {
   putStaff,
   terminateStaff,
   getStaffList,
-  login
+  login,
 };

@@ -717,6 +717,45 @@ class Lab {
       return handleError(e, "getStafflist => Lab");
     }
   }
+
+  static async login(labId, username, password, isAdmin) {
+    try {
+      const db = getClient();
+      const userType = isAdmin ? "adminUsers" : "staffList";
+
+      // 1. Find user by username only
+      const lab = await db.collection("users").findOne(
+        {
+          labId: labId,
+          [userType]: {
+            $elemMatch: {
+              username: username,
+            },
+          },
+        },
+        {
+          projection: {
+            [userType + ".$"]: 1, // Get only the matched user
+            _id: 0,
+          },
+        }
+      );
+
+      if (!lab || !lab[userType]?.length) return null;
+
+      // 2. Extract user with hashed password
+      const user = lab[userType][0];
+      console.log(user)
+      return user
+
+      // // 3. Compare passwords using bcrypt
+      // const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      // return isPasswordValid ? user : null;
+    } catch (e) {
+      return handleError(e, "login => Lab");
+    }
+  }
 }
 
 module.exports = Lab;
