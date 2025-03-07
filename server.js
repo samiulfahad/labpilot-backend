@@ -3,6 +3,7 @@
 const express = require("express");
 const cors = require("cors");
 
+require('dotenv').config();
 const invoiceController = require("./controller/invoice");
 const systemController = require("./controller/system");
 const labController = require("./controller/lab");

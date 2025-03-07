@@ -1,8 +1,11 @@
 /** @format */
 
+const jwt = require("jsonwebtoken");
+const { ObjectId } = require("mongodb"); // Ensure ObjectId is imported
+const bcrypt = require("bcryptjs");
+
 const { getClient } = require("./connection");
 
-const { ObjectId } = require("mongodb"); // Ensure ObjectId is imported
 const handleError = (e, methodName) => {
   console.log("Error in database operation");
   console.log(`${methodName} produced an error`);
@@ -191,12 +194,12 @@ class Lab {
               from: "users",
               let: { referrerId: "$_id" },
               pipeline: [
-                { $unwind: "$referrerList" },
-                { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
+                { $unwind: "$referrers" },
+                { $match: { $expr: { $eq: ["$referrers._id", { $toObjectId: "$$referrerId" }] } } },
                 {
                   $project: {
-                    "referrerList.name": 1,
-                    "referrerList.isDoctor": 1,
+                    "referrers.name": 1,
+                    "referrers.isDoctor": 1,
                   },
                 },
               ],
@@ -240,8 +243,8 @@ class Lab {
             $project: {
               _id: 0,
               referrerId: "$_id",
-              name: "$referrerDetails.referrerList.name",
-              isDoctor: "$referrerDetails.referrerList.isDoctor",
+              name: "$referrerDetails.referrers.name",
+              isDoctor: "$referrerDetails.referrers.isDoctor",
               totalCommission: "$commissionDetails.totalCommission",
               testList: 1,
             },
@@ -319,12 +322,12 @@ class Lab {
               from: "users",
               let: { referrerId: "$_id" },
               pipeline: [
-                { $unwind: "$referrerList" },
-                { $match: { $expr: { $eq: ["$referrerList._id", { $toObjectId: "$$referrerId" }] } } },
+                { $unwind: "$referrers" },
+                { $match: { $expr: { $eq: ["$referrers._id", { $toObjectId: "$$referrerId" }] } } },
                 {
                   $project: {
-                    "referrerList.name": 1,
-                    "referrerList.isDoctor": 1,
+                    "referrers.name": 1,
+                    "referrers.isDoctor": 1,
                   },
                 },
               ],
@@ -360,8 +363,8 @@ class Lab {
             $project: {
               _id: 0,
               referrerId: "$_id",
-              name: "$referrerDetails.referrerList.name",
-              isDoctor: "$referrerDetails.referrerList.isDoctor",
+              name: "$referrerDetails.referrers.name",
+              isDoctor: "$referrerDetails.referrers.isDoctor",
               totalCommission: "$commissionDetails.totalCommission",
               testList: 1,
             },
@@ -392,10 +395,10 @@ class Lab {
       const db = getClient();
       const result = await db
         .collection("users")
-        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrerList: 1, _id: 0 } });
+        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrers: 1, _id: 0 } });
       // console.log(result);
-      return result.testList && result.referrerList
-        ? { testList: result.testList, referrerList: result.referrerList }
+      return result.testList && result.referrers
+        ? { testList: result.testList, referrers: result.referrers }
         : null;
     } catch (e) {
       return handleError(e, "testList => User");
@@ -407,10 +410,10 @@ class Lab {
       const db = getClient();
       const result = await db
         .collection("users")
-        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrerList: 1, _id: 0 } });
+        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrers: 1, _id: 0 } });
       // console.log(result);
-      return result.testList && result.referrerList
-        ? { testList: result.testList, referrerList: result.referrerList }
+      return result.testList && result.referrers
+        ? { testList: result.testList, referrers: result.referrers }
         : null;
     } catch (e) {
       return handleError(e, "getTestListAndReferrerList => user => database");
@@ -496,7 +499,7 @@ class Lab {
       // Update the user's referrers array by adding the new referrer
       const result = await db.collection("users").updateOne(
         { _id: new ObjectId(userId) }, // Match the user by ID
-        { $push: { referrerList: newReferrer } } // Push the new referrer into the referrers array
+        { $push: { referrers: newReferrer } } // Push the new referrer into the referrers array
       );
 
       // Check if the update was successful
@@ -519,13 +522,13 @@ class Lab {
       // Prepare the update object dynamically
       const setUpdates = {};
       for (const [field, value] of Object.entries(updates)) {
-        setUpdates[`referrerList.$.${field}`] = value;
+        setUpdates[`referrers.$.${field}`] = value;
       }
 
       const result = await db.collection("users").updateOne(
         {
           _id: new ObjectId(userId), // Match the user by ID
-          "referrerList._id": new ObjectId(referrerId), // Match the specific referrer by ID
+          "referrers._id": new ObjectId(referrerId), // Match the specific referrer by ID
         },
         {
           $set: setUpdates, // Dynamically set fields in the matched referrer
@@ -545,9 +548,9 @@ class Lab {
       const db = getClient(); // Initialize the database connection
       const result = await db.collection("users").findOne(
         { _id: new ObjectId(userId) }, // Query by user ID
-        { projection: { referrerList: 1, _id: 0 } } // Project only the testList field
+        { projection: { referrers: 1, _id: 0 } } // Project only the testList field
       );
-      return result.referrerList ? result.referrerList : null;
+      return result.referrers ? result.referrers : null;
     } catch (e) {
       return handleError(e, "referrerList => User");
     }
@@ -565,7 +568,7 @@ class Lab {
       // Check if the username already exists in the userList array
       const usernameExists = await db.collection("users").findOne({
         _id: new ObjectId(labId),
-        "staffList.username": username,
+        "staffs.username": username,
       });
 
       if (usernameExists) {
@@ -583,8 +586,8 @@ class Lab {
         contactNo,
       };
 
-      // Push new user to the userList array
-      await db.collection("users").updateOne({ _id: new ObjectId(labId) }, { $push: { staffList: newStaff } });
+      // Push new staff to the staffs array
+      await db.collection("users").updateOne({ _id: new ObjectId(labId) }, { $push: { staffs: newStaff } });
 
       return true; // User added successfully
     } catch (e) {
@@ -606,7 +609,7 @@ class Lab {
       // Check if the staff member exists
       const staffExists = await db.collection("users").findOne({
         _id: new ObjectId(labId),
-        "staffList._id": new ObjectId(staffId),
+        "staffs._id": new ObjectId(staffId),
       });
 
       if (!staffExists) {
@@ -616,10 +619,10 @@ class Lab {
 
       // **** Uncomment the following code to update username ***** //
 
-      // Check if the new username already exists in the staffList (excluding the current staff member)
+      // Check if the new username already exists in the staffs (excluding the current staff member)
       // const usernameExists = await db.collection("users").findOne({
       //     _id: new ObjectId(labId),
-      //     "staffList": {
+      //     "staffs": {
       //         $elemMatch: { username: updatedData.username, _id: { $ne: new ObjectId(staffId) } }
       //     }
       // });
@@ -630,21 +633,21 @@ class Lab {
 
       // ***** Add the following line to update username, email, password *****  //
 
-      //  "staffList.$.username": updatedData.username,
-      // "staffList.$.email": updatedData.email,
-      // "staffList.$.password": updatedData.password,
+      //  "staffs.$.username": updatedData.username,
+      // "staffs.$.email": updatedData.email,
+      // "staffs.$.password": updatedData.password,
 
       // Construct the update object
       let updateFields = {
-        "staffList.$.accessControl": updatedData.accessControl,
-        "staffList.$.fullName": updatedData.fullName,
-        "staffList.$.contactNo": updatedData.contactNo,
+        "staffs.$.accessControl": updatedData.accessControl,
+        "staffs.$.fullName": updatedData.fullName,
+        "staffs.$.contactNo": updatedData.contactNo,
       };
 
-      // Update the staff details in the staffList array
+      // Update the staff details in the staffs array
       const updateResult = await db
         .collection("users")
-        .updateOne({ _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) }, { $set: updateFields });
+        .updateOne({ _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) }, { $set: updateFields });
 
       return updateResult.modifiedCount > 0 ? true : false;
     } catch (e) {
@@ -657,10 +660,10 @@ class Lab {
       const db = getClient(); // Initialize the database connection
 
       if (action === "delete") {
-        // Remove staff from the `staffList` array where `_id` matches `staffId`
+        // Remove staff from the `staffs` array where `_id` matches `staffId`
         const result = await db
           .collection("users")
-          .updateOne({ _id: new ObjectId(labId) }, { $pull: { staffList: { _id: new ObjectId(staffId) } } });
+          .updateOne({ _id: new ObjectId(labId) }, { $pull: { staffs: { _id: new ObjectId(staffId) } } });
 
         if (result.modifiedCount === 0) {
           console.log("Staff NOT Found");
@@ -673,8 +676,8 @@ class Lab {
         const result = await db
           .collection("users")
           .updateOne(
-            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
-            { $set: { "staffList.$.deactivated": true } }
+            { _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) },
+            { $set: { "staffs.$.deactivated": true } }
           );
 
         if (result.modifiedCount === 0) {
@@ -688,8 +691,8 @@ class Lab {
         const result = await db
           .collection("users")
           .updateOne(
-            { _id: new ObjectId(labId), "staffList._id": new ObjectId(staffId) },
-            { $set: { "staffList.$.deactivated": false } }
+            { _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) },
+            { $set: { "staffs.$.deactivated": false } }
           );
 
         if (result.modifiedCount === 0) {
@@ -703,57 +706,111 @@ class Lab {
     }
   }
 
-  static async getStaffList(userId) {
+  static async getStaffList(labId) {
     try {
       const db = getClient(); // Initialize the database connection
 
       const result = await db.collection("users").findOne(
-        { _id: new ObjectId(userId) }, // Query by user ID
-        { projection: { staffList: 1, _id: 0 } } // Project only the staffList field
+        { _id: new ObjectId(labId) }, // Query by user ID
+        { projection: { staffs: 1, _id: 0 } } // Project only the staffs field
       );
 
-      return result?.staffList || null; // Return staffList or null if not found
+      return result?.staffs || null; // Return staffs or null if not found
     } catch (e) {
-      return handleError(e, "getStafflist => Lab");
+      return handleError(e, "getStaffList => Lab");
     }
   }
 
   static async login(labId, username, password, isAdmin) {
     try {
       const db = getClient();
-      const userType = isAdmin ? "adminUsers" : "staffList";
+      const userType = isAdmin ? "admins" : "staffs";
 
-      // 1. Find user by username only
+      // 1. Find user by username (without projection for exclusions)
       const lab = await db.collection("users").findOne(
         {
           labId: labId,
-          [userType]: {
-            $elemMatch: {
-              username: username,
-            },
-          },
+          [userType]: { $elemMatch: { username: username } },
         },
         {
-          projection: {
-            [userType + ".$"]: 1, // Get only the matched user
-            _id: 0,
+          projection: { [userType]: 1, _id: 0 }, // Keep full user object, will filter manually
+        }
+      );
+
+      if (!lab || !lab[userType]) return null;
+
+      // 2. Extract the matched user manually
+      const user = lab[userType].find((u) => u.username === username);
+      if (!user) return null;
+
+      // 3. Compare password
+      if (user.password !== password) return null;
+
+      // 4. Remove sensitive fields before returning
+      const { password: _, refreshTokens: __, ...filteredUser } = user;
+
+      // 5. Generate tokens
+      const accessControl = isAdmin ? ["admin"] : user.accessControl;
+      const payload = { id: user._id, username: user.username, labId, accessControl, isAdmin };
+      const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+      const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+
+      // 6. Store refresh token inside the user's own refreshTokens array (max 5 tokens)
+      await db.collection("users").updateOne(
+        { labId: labId, [`${userType}.username`]: username },
+        {
+          $push: {
+            [`${userType}.$.refreshTokens`]: { $each: [refreshToken], $slice: -5 },
           },
         }
       );
 
-      if (!lab || !lab[userType]?.length) return null;
+      console.log(filteredUser);
 
-      // 2. Extract user with hashed password
-      const user = lab[userType][0];
-      console.log(user)
-      return user
-
-      // // 3. Compare passwords using bcrypt
-      // const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      // return isPasswordValid ? user : null;
+      return { accessToken, refreshToken, user: filteredUser };
     } catch (e) {
       return handleError(e, "login => Lab");
+    }
+  }
+
+  // Only Logout from the current device
+  static async logout(labId, username, isAdmin, refreshToken) {
+    try {
+      const db = getClient();
+      const userType = isAdmin ? "admins" : "staffs";
+
+      // Remove only the given refresh token
+      const result = await db
+        .collection("users")
+        .updateOne(
+          { labId: labId, [`${userType}.username`]: username },
+          { $pull: { [`${userType}.$.refreshTokens`]: refreshToken } }
+        );
+
+      return result.modifiedCount > 0;
+    } catch (e) {
+      return handleError(e, "logout => Lab");
+    }
+  }
+
+  // Logout from all devices
+  static async logoutAll(labId, username, isAdmin) {
+    try {
+      const db = getClient();
+      const userType = isAdmin ? "admins" : "staffs";
+
+      // 1. Remove the refresh token from the user's refreshTokens array
+      const result = await db.collection("users").updateOne(
+        { labId: labId, [`${userType}.username`]: username },
+        { $set: { [`${userType}.$.refreshTokens`]: [] } } // Clearing all stored refresh tokens
+      );
+
+      // 2. If no document was modified, return false
+      if (result.modifiedCount === 0) return false;
+
+      return true;
+    } catch (e) {
+      return handleError(e, "logout => Lab");
     }
   }
 }

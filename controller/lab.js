@@ -15,7 +15,7 @@ const getDataForNewInvoice = async (req, res, next) => {
     const labId = LAB_ID; // Current lab ID
     const result = await Lab.getTestListAndReferrerList(labId); // Fetch data
     if (result) {
-      return res.status(200).send({ success: true, testList: result.testList, referrerList: result.referrerList });
+      return res.status(200).send({ success: true, testList: result.testList, referrers: result.referrers });
     } else {
       return res.status(400).send({ success: false });
     }
@@ -345,15 +345,77 @@ const getStaffList = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { labId, username, password, isAdmin } = req.body;
-    if (!labId || !username || !password  || isAdmin === undefined){
-      return res.send({success: false, msg: "Required field missing"})
+    if (!labId || !username || !password || isAdmin === undefined) {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
     }
-    // console.log(labId, username, password, isAdmin)
+    if (typeof isAdmin !== "boolean") {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
+    }
 
-    const result = await Lab.login(parseInt(labId), username, password, isAdmin)
+    const result = await Lab.login(parseInt(labId), username, password.toString(), isAdmin);
 
+    if (!result) return res.status(401).json({ success: false, msg: "Invalid credentials" });
 
-    res.status(401).send({ success: false });
+    // Send refresh token in HttpOnly cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/refresh",
+    });
+
+    res.json({ success: true, accessToken: result.accessToken, user: result.user });
+  } catch (e) {
+    next(e);
+  }
+};
+
+// Logout the current device
+const logout = async (req, res, next) => {
+  try {
+    const { labId, username, isAdmin } = req.body;
+    const refreshToken = req.cookies.refreshToken; // Get token from cookie
+
+    if (!labId || !username || isAdmin === undefined || !refreshToken) {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
+    }
+    if (typeof isAdmin !== "boolean") {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
+    }
+    const result = await Lab.logout(parseInt(labId), username, isAdmin, refreshToken);
+
+    if (!result) {
+      return res.status(401).json({ success: false, msg: "Logout failed" });
+    }
+
+    res.clearCookie("refreshToken", { path: "/refresh", httpOnly: true, sameSite: "strict" });
+    res.status(200).json({ success: true, msg: "Logged out successfully" });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const logoutAll = async (req, res, next) => {
+  try {
+    const { labId, username, isAdmin } = req.body;
+
+    if (!labId || !username || isAdmin === undefined) {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
+    }
+    if (typeof isAdmin !== "boolean") {
+      return res.status(400).json({ success: false, msg: "Required field missing" });
+    }
+
+    const result = await Lab.logout(parseInt(labId), username, isAdmin);
+
+    if (!result) {
+      return res.status(401).json({ success: false, msg: "Logout failed" });
+    }
+
+    // Clear refresh token cookie
+    res.clearCookie("refreshToken", { path: "/refresh", httpOnly: true, sameSite: "strict" });
+
+    res.status(200).json({ success: true, msg: "Logged out successfully" });
   } catch (e) {
     next(e);
   }
@@ -374,4 +436,6 @@ module.exports = {
   terminateStaff,
   getStaffList,
   login,
+  logout,
+  logoutAll,
 };
