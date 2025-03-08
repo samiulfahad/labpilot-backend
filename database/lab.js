@@ -7,8 +7,7 @@ const bcrypt = require("bcryptjs");
 const { getClient } = require("./connection");
 
 const handleError = (e, methodName) => {
-  console.log("Error in database operation");
-  console.log(`${methodName} produced an error`);
+  console.log(`Error in database => lab.js => fn ${methodName}`);
   console.log(e.message);
   return null;
 };
@@ -18,6 +17,8 @@ class Lab {
     this.name = name;
   }
 
+  // Function 1
+  // Cash Memo with associated invoices
   static async cashMemoWithInvoices(startDate, endDate, page = 1, limit = 50) {
     try {
       const db = getClient();
@@ -94,6 +95,8 @@ class Lab {
     }
   }
 
+  // Function 2
+  // Cash Memo 
   static async cashMemo(startDate, endDate) {
     try {
       const db = getClient();
@@ -143,7 +146,8 @@ class Lab {
     }
   }
 
-  // Version 1 (Without totalInvoice of each referrer)
+   // Function 3
+  // Commission Tracker without totalInvoice of each referrer
   static async commissionTrackerV1(startDate, endDate) {
     try {
       const db = getClient();
@@ -191,7 +195,7 @@ class Lab {
           // Add referrer details and totalCommission using $lookup
           {
             $lookup: {
-              from: "users",
+              from: "labs",
               let: { referrerId: "$_id" },
               pipeline: [
                 { $unwind: "$referrers" },
@@ -259,7 +263,10 @@ class Lab {
     }
   }
 
-  // Version 2 (With totalInvoice of each referrer)
+
+
+ // Function 4
+  // Commission Tracker with totalInvoice of each referrer
   static async commissionTrackerV2(startDate, endDate) {
     try {
       const db = getClient();
@@ -319,7 +326,7 @@ class Lab {
           },
           {
             $lookup: {
-              from: "users",
+              from: "labs",
               let: { referrerId: "$_id" },
               pipeline: [
                 { $unwind: "$referrers" },
@@ -390,58 +397,65 @@ class Lab {
     }
   }
 
-  static async getInvoicesByReferrerId(referrerId, startDate, endDate) {
+
+  // incomplete
+// Function 5
+  // Invoices by Referrer ID
+  static async invoicesByReferrerId(referrerId, startDate, endDate) {
     try {
       const db = getClient();
       const result = await db
-        .collection("users")
+        .collection("labs")
         .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrers: 1, _id: 0 } });
       // console.log(result);
-      return result.testList && result.referrers
-        ? { testList: result.testList, referrers: result.referrers }
-        : null;
+      return result.testList && result.referrers ? { testList: result.testList, referrers: result.referrers } : null;
     } catch (e) {
-      return handleError(e, "testList => User");
+      return handleError(e, "invoicesByReferrerId");
     }
   }
 
-  static async getTestListAndReferrerList(userId) {
+
+  // Function 6
+  // Data for creating new invoice
+  static async dataForNewInvoice(labUId) {
     try {
       const db = getClient();
       const result = await db
-        .collection("users")
-        .findOne({ _id: new ObjectId(userId) }, { projection: { testList: 1, referrers: 1, _id: 0 } });
+        .collection("labs")
+        .findOne({ _id: new ObjectId(labUId) }, { projection: { testList: 1, referrers: 1, _id: 0 } });
       // console.log(result);
-      return result.testList && result.referrers
-        ? { testList: result.testList, referrers: result.referrers }
-        : null;
+      return result.testList && result.referrers ? { tests: result.testList, referrers: result.referrers } : null;
     } catch (e) {
-      return handleError(e, "getTestListAndReferrerList => user => database");
+      return handleError(e, "dataForNewInvoice");
     }
   }
 
-  static async testList(userId) {
+  // Function 7
+  // Testlist of a lab
+  static async testList(labUId) {
     try {
       const db = getClient(); // Assumes getClient() initializes the MongoDB connection
-      const result = await db.collection("users").findOne(
-        { _id: new ObjectId(userId) }, // Query by user ID
+      const result = await db.collection("labs").findOne(
+        { _id: new ObjectId(labUId) }, // Query by lab ID
         { projection: { testList: 1, _id: 0 } } // Project only the testList field
       );
       // console.log(result.testList);
 
       return result.testList ? result.testList : null; // Return the testList array or an empty array if not found
     } catch (e) {
-      return handleError(e, "testList => User");
+      return handleError(e, "testList");
     }
   }
 
-  static async updateTestList(userId, testList) {
+  // Function 8
+  // Update Testlist of a lab
+  static async updateTestList(labUId, testList) {
     try {
       const db = getClient(); // Assumes getClient() initializes the MongoDB connection
 
       // Update the user's testList
-      const result = await db.collection("users").updateOne(
-        { _id: new ObjectId(userId) }, // Filter: find the user by ID
+      const result = await db.collection("labs").updateOne(
+        { _id: new ObjectId(labUId) }, // Filter: find the lab by ID
         { $set: { testList: testList } } // Update operation
       );
 
@@ -452,18 +466,20 @@ class Lab {
 
       return true; // Successfully updated
     } catch (e) {
-      return handleError(e, "testList => User");
+      return handleError(e, "updateTestList");
     }
   }
 
-  static async updateTest(userId, testId, field, value) {
+  // Function 9
+  // Update a test
+  static async updateTest(labUId, testId, field, value) {
     try {
       const db = getClient();
 
       // Perform the update using the positional operator `$`
-      const result = await db.collection("users").updateOne(
+      const result = await db.collection("labs").updateOne(
         {
-          _id: new ObjectId(userId), // Match the user by ID
+          _id: new ObjectId(labUId), // Match the user by ID
           "testList._id": testId, // Match the specific test by ID
         },
         {
@@ -477,12 +493,13 @@ class Lab {
 
       return result.matchedCount > 0; // Return true if a document was matched
     } catch (e) {
-      console.error("Error in updateTest:", e);
-      return handleError(e, "testList => User");
+      return handleError(e, "updateTest");
     }
   }
 
-  static async addReferrer(userId, name, commissionType, commission, isDoctor, description) {
+  // Function 10
+  // add a new referrer
+  static async addReferrer(labUId, name, commissionType, commission, isDoctor, description) {
     try {
       const db = getClient(); // Initialize the database connection
 
@@ -497,8 +514,8 @@ class Lab {
       };
 
       // Update the user's referrers array by adding the new referrer
-      const result = await db.collection("users").updateOne(
-        { _id: new ObjectId(userId) }, // Match the user by ID
+      const result = await db.collection("labs").updateOne(
+        { _id: new ObjectId(labUId) }, // Match the user by ID
         { $push: { referrers: newReferrer } } // Push the new referrer into the referrers array
       );
 
@@ -506,11 +523,13 @@ class Lab {
 
       return result.matchedCount === 1 ? true : null;
     } catch (e) {
-      return handleError(e, "addReferrer => User");
+      return handleError(e, "addReferrer");
     }
   }
 
-  static async updateReferrer(userId, referrerId, updates) {
+  // Function 11
+  // update a referrer
+  static async updateReferrer(labUId, referrerId, updates) {
     try {
       // Validate `updates` to ensure it is an object
       if (typeof updates !== "object" || updates === null) {
@@ -525,9 +544,9 @@ class Lab {
         setUpdates[`referrers.$.${field}`] = value;
       }
 
-      const result = await db.collection("users").updateOne(
+      const result = await db.collection("labs").updateOne(
         {
-          _id: new ObjectId(userId), // Match the user by ID
+          _id: new ObjectId(labUId), // Match the user by ID
           "referrers._id": new ObjectId(referrerId), // Match the specific referrer by ID
         },
         {
@@ -539,35 +558,40 @@ class Lab {
 
       return result.matchedCount > 0; // Return true if a document was matched
     } catch (e) {
-      return handleError(e, "updateReferrer => User");
+      return handleError(e, "updateReferrer");
     }
   }
 
-  static async referrerList(userId) {
+
+  // Function 12
+// Referrers of a lab
+  static async referrerList(labUId) {
     try {
       const db = getClient(); // Initialize the database connection
-      const result = await db.collection("users").findOne(
-        { _id: new ObjectId(userId) }, // Query by user ID
+      const result = await db.collection("labs").findOne(
+        { _id: new ObjectId(labUId) }, // Query by Lab ID
         { projection: { referrers: 1, _id: 0 } } // Project only the testList field
       );
       return result.referrers ? result.referrers : null;
     } catch (e) {
-      return handleError(e, "referrerList => User");
+      return handleError(e, "referrerList");
     }
   }
 
-  static async addStaff(labId, username, email, password, accessControl, fullName = null, contactNo = null) {
+  // Function 13
+  // add a new staff
+  static async addStaff(labUId, username, email, password, accessControl, fullName = null, contactNo = null) {
     try {
       const db = getClient(); // Initialize the database connection
-      const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
+      const lab = await db.collection("labs").findOne({ _id: new ObjectId(labUId) });
 
       if (!lab) {
         return false; // Lab not found
       }
 
       // Check if the username already exists in the userList array
-      const usernameExists = await db.collection("users").findOne({
-        _id: new ObjectId(labId),
+      const usernameExists = await db.collection("labs").findOne({
+        _id: new ObjectId(labUId),
         "staffs.username": username,
       });
 
@@ -587,19 +611,19 @@ class Lab {
       };
 
       // Push new staff to the staffs array
-      await db.collection("users").updateOne({ _id: new ObjectId(labId) }, { $push: { staffs: newStaff } });
+      await db.collection("labs").updateOne({ _id: new ObjectId(labUId) }, { $push: { staffs: newStaff } });
 
       return true; // User added successfully
     } catch (e) {
-      console.error("Error in addUser:", e);
+      console.error("Error in addStaff:", e);
       return false; // Handle errors
     }
   }
 
-  static async editStaff(labId, staffId, updatedData) {
+  static async editStaff(labUId, staffId, updatedData) {
     try {
       const db = getClient(); // Initialize the database connection
-      const lab = await db.collection("users").findOne({ _id: new ObjectId(labId) });
+      const lab = await db.collection("labs").findOne({ _id: new ObjectId(labUId) });
 
       if (!lab) {
         console.log("Lab NOT found");
@@ -607,8 +631,8 @@ class Lab {
       }
 
       // Check if the staff member exists
-      const staffExists = await db.collection("users").findOne({
-        _id: new ObjectId(labId),
+      const staffExists = await db.collection("labs").findOne({
+        _id: new ObjectId(labUId),
         "staffs._id": new ObjectId(staffId),
       });
 
@@ -620,7 +644,7 @@ class Lab {
       // **** Uncomment the following code to update username ***** //
 
       // Check if the new username already exists in the staffs (excluding the current staff member)
-      // const usernameExists = await db.collection("users").findOne({
+      // const usernameExists = await db.collection("labs").findOne({
       //     _id: new ObjectId(labId),
       //     "staffs": {
       //         $elemMatch: { username: updatedData.username, _id: { $ne: new ObjectId(staffId) } }
@@ -646,24 +670,24 @@ class Lab {
 
       // Update the staff details in the staffs array
       const updateResult = await db
-        .collection("users")
-        .updateOne({ _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) }, { $set: updateFields });
+        .collection("labs")
+        .updateOne({ _id: new ObjectId(labUId), "staffs._id": new ObjectId(staffId) }, { $set: updateFields });
 
       return updateResult.modifiedCount > 0 ? true : false;
     } catch (e) {
-      return handleError(e, "putStaff => Lab");
+      return handleError(e, "editStaff");
     }
   }
 
-  static async terminateStaff(labId, staffId, action) {
+  static async terminateStaff(labUId, staffId, action) {
     try {
       const db = getClient(); // Initialize the database connection
 
       if (action === "delete") {
         // Remove staff from the `staffs` array where `_id` matches `staffId`
         const result = await db
-          .collection("users")
-          .updateOne({ _id: new ObjectId(labId) }, { $pull: { staffs: { _id: new ObjectId(staffId) } } });
+          .collection("labs")
+          .updateOne({ _id: new ObjectId(labUId) }, { $pull: { staffs: { _id: new ObjectId(staffId) } } });
 
         if (result.modifiedCount === 0) {
           console.log("Staff NOT Found");
@@ -674,9 +698,9 @@ class Lab {
       if (action === "deactivate") {
         // Deactivate staff by adding/modifying the `deactivated` field
         const result = await db
-          .collection("users")
+          .collection("labs")
           .updateOne(
-            { _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) },
+            { _id: new ObjectId(labUId), "staffs._id": new ObjectId(staffId) },
             { $set: { "staffs.$.deactivated": true } }
           );
 
@@ -689,9 +713,9 @@ class Lab {
       if (action === "reactivate") {
         // Reactivate staff
         const result = await db
-          .collection("users")
+          .collection("labs")
           .updateOne(
-            { _id: new ObjectId(labId), "staffs._id": new ObjectId(staffId) },
+            { _id: new ObjectId(labUId), "staffs._id": new ObjectId(staffId) },
             { $set: { "staffs.$.deactivated": false } }
           );
 
@@ -702,22 +726,22 @@ class Lab {
         return true;
       }
     } catch (e) {
-      return handleError(e, "terminateStaff => Lab");
+      return handleError(e, "terminateStaff");
     }
   }
 
-  static async getStaffList(labId) {
+  static async getStaffList(labUId) {
     try {
       const db = getClient(); // Initialize the database connection
 
-      const result = await db.collection("users").findOne(
-        { _id: new ObjectId(labId) }, // Query by user ID
+      const result = await db.collection("labs").findOne(
+        { _id: new ObjectId(labUId) }, // Query by user ID
         { projection: { staffs: 1, _id: 0 } } // Project only the staffs field
       );
 
       return result?.staffs || null; // Return staffs or null if not found
     } catch (e) {
-      return handleError(e, "getStaffList => Lab");
+      return handleError(e, "getStaffList");
     }
   }
 
@@ -727,7 +751,7 @@ class Lab {
       const userType = isAdmin ? "admins" : "staffs";
 
       // 1. Find user by username (without projection for exclusions)
-      const lab = await db.collection("users").findOne(
+      const lab = await db.collection("labs").findOne(
         {
           labId: labId,
           [userType]: { $elemMatch: { username: username } },
@@ -756,7 +780,7 @@ class Lab {
       const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 
       // 6. Store refresh token inside the user's own refreshTokens array (max 5 tokens)
-      await db.collection("users").updateOne(
+      await db.collection("labs").updateOne(
         { labId: labId, [`${userType}.username`]: username },
         {
           $push: {
@@ -764,12 +788,52 @@ class Lab {
           },
         }
       );
-
-      console.log(filteredUser);
-
       return { accessToken, refreshToken, user: filteredUser };
     } catch (e) {
-      return handleError(e, "login => Lab");
+      return handleError(e, "login");
+    }
+  }
+
+  static async generateNewAccessToken(refreshToken) {
+    try {
+      // Verify the refresh token
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      const { username, labId, isAdmin } = decoded;
+      
+      if(typeof isAdmin !== 'boolean'){
+        return null
+      }
+      const userType = isAdmin ? "admins" : "staffs";
+  
+      const db = getClient();
+  
+      // Find the user with the specific labId and username (directly match)
+      const lab = await db.collection("labs").findOne(
+        {
+          labId: labId,
+          [`${userType}.username`]: username, // Match the username directly
+        },
+        {
+          projection: { [`${userType}.$`]: 1, _id: 0 }, // Only return the matched user
+        }
+      );
+  
+      // If no lab or user found, return null
+      if (!lab || !lab[userType]?.length) return null;
+  
+      const user = lab[userType][0]; // As username is unique, take the first match
+  
+      // Check if the refresh token is valid for the user
+      if (!user.refreshTokens.includes(refreshToken)) return null;
+  
+      // Generate a new access token
+      const accessControl = isAdmin ? ["admin"] : user.accessControl;
+      const payload = { id: user._id, username: user.username, labId, accessControl, isAdmin };
+      const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+  
+      return newAccessToken;
+    } catch (e) {
+      return handleError(e, "generateNewAccessToken");
     }
   }
 
@@ -781,7 +845,7 @@ class Lab {
 
       // Remove only the given refresh token
       const result = await db
-        .collection("users")
+        .collection("labs")
         .updateOne(
           { labId: labId, [`${userType}.username`]: username },
           { $pull: { [`${userType}.$.refreshTokens`]: refreshToken } }
@@ -789,7 +853,7 @@ class Lab {
 
       return result.modifiedCount > 0;
     } catch (e) {
-      return handleError(e, "logout => Lab");
+      return handleError(e, "logout");
     }
   }
 
@@ -800,7 +864,7 @@ class Lab {
       const userType = isAdmin ? "admins" : "staffs";
 
       // 1. Remove the refresh token from the user's refreshTokens array
-      const result = await db.collection("users").updateOne(
+      const result = await db.collection("labs").updateOne(
         { labId: labId, [`${userType}.username`]: username },
         { $set: { [`${userType}.$.refreshTokens`]: [] } } // Clearing all stored refresh tokens
       );
@@ -810,7 +874,7 @@ class Lab {
 
       return true;
     } catch (e) {
-      return handleError(e, "logout => Lab");
+      return handleError(e, "logoutAll");
     }
   }
 }

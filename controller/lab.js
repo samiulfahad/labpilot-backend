@@ -13,14 +13,13 @@ const Lab = require("../database/lab"); // Lab database operations
 const getDataForNewInvoice = async (req, res, next) => {
   try {
     const labId = LAB_ID; // Current lab ID
-    const result = await Lab.getTestListAndReferrerList(labId); // Fetch data
+    const result = await Lab.dataForNewInvoice(labId); // Fetch data
     if (result) {
-      return res.status(200).send({ success: true, testList: result.testList, referrers: result.referrers });
+      return res.status(200).send({ success: true, tests: result.tests, referrers: result.referrers });
     } else {
       return res.status(400).send({ success: false });
     }
   } catch (e) {
-    return res.status(400).send({ success: false });
     next(e); // Pass error to next middleware
   }
 };
@@ -229,6 +228,7 @@ const getCommissionTracker = async (req, res, next) => {
   }
 };
 
+// Incomplete
 const getInvoicesByReferrer = async (req, res, next) => {
   try {
     let startDate;
@@ -370,6 +370,26 @@ const login = async (req, res, next) => {
   }
 };
 
+const refreshAccessToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, msg: "Refresh token missing" });
+    }
+
+    const newAccessToken = await Lab.generateNewAccessToken(refreshToken);
+
+    if (newAccessToken) {
+      return res.json({ success: true, accessToken: newAccessToken });
+    } else {
+      return res.status(403).json({ success: false, msg: "Invalid refresh token" });
+    }
+  } catch (e) {
+    next(e);
+  }
+};
+
 // Logout the current device
 const logout = async (req, res, next) => {
   try {
@@ -395,6 +415,7 @@ const logout = async (req, res, next) => {
   }
 };
 
+// Logout from all devices
 const logoutAll = async (req, res, next) => {
   try {
     const { labId, username, isAdmin } = req.body;
@@ -425,6 +446,7 @@ module.exports = {
   getCashMemo,
   getCommissionTracker,
   getDataForNewInvoice,
+  getInvoicesByReferrer,
   getTestList,
   getReferrerList,
   postReferrer,
@@ -436,6 +458,7 @@ module.exports = {
   terminateStaff,
   getStaffList,
   login,
+  refreshAccessToken,
   logout,
   logoutAll,
 };
