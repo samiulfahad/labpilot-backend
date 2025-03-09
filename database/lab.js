@@ -96,7 +96,7 @@ class Lab {
   }
 
   // Function 2
-  // Cash Memo 
+  // Cash Memo
   static async cashMemo(startDate, endDate) {
     try {
       const db = getClient();
@@ -146,7 +146,7 @@ class Lab {
     }
   }
 
-   // Function 3
+  // Function 3
   // Commission Tracker without totalInvoice of each referrer
   static async commissionTrackerV1(startDate, endDate) {
     try {
@@ -263,9 +263,7 @@ class Lab {
     }
   }
 
-
-
- // Function 4
+  // Function 4
   // Commission Tracker with totalInvoice of each referrer
   static async commissionTrackerV2(startDate, endDate) {
     try {
@@ -397,9 +395,8 @@ class Lab {
     }
   }
 
-
   // incomplete
-// Function 5
+  // Function 5
   // Invoices by Referrer ID
   static async invoicesByReferrerId(referrerId, startDate, endDate) {
     try {
@@ -413,7 +410,6 @@ class Lab {
       return handleError(e, "invoicesByReferrerId");
     }
   }
-
 
   // Function 6
   // Data for creating new invoice
@@ -562,9 +558,8 @@ class Lab {
     }
   }
 
-
   // Function 12
-// Referrers of a lab
+  // Referrers of a lab
   static async referrerList(labUId) {
     try {
       const db = getClient(); // Initialize the database connection
@@ -620,6 +615,8 @@ class Lab {
     }
   }
 
+  // Function 14
+  // edit staff
   static async editStaff(labUId, staffId, updatedData) {
     try {
       const db = getClient(); // Initialize the database connection
@@ -679,6 +676,8 @@ class Lab {
     }
   }
 
+  // Function 15
+  // terminate a new staff
   static async terminateStaff(labUId, staffId, action) {
     try {
       const db = getClient(); // Initialize the database connection
@@ -730,6 +729,8 @@ class Lab {
     }
   }
 
+  // Function 16
+  // get staffs
   static async getStaffList(labUId) {
     try {
       const db = getClient(); // Initialize the database connection
@@ -745,6 +746,8 @@ class Lab {
     }
   }
 
+  // Function 17
+  // login
   static async login(labId, username, password, isAdmin) {
     try {
       const db = getClient();
@@ -761,6 +764,8 @@ class Lab {
         }
       );
 
+      // console.log(lab)
+      
       if (!lab || !lab[userType]) return null;
 
       // 2. Extract the matched user manually
@@ -788,25 +793,27 @@ class Lab {
           },
         }
       );
-      return { accessToken, refreshToken, user: filteredUser };
+      return { accessToken, refreshToken, user: {...filteredUser, accessControl} };
     } catch (e) {
       return handleError(e, "login");
     }
   }
 
+  // Function 18
+  // generate new access token
   static async generateNewAccessToken(refreshToken) {
     try {
       // Verify the refresh token
       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
       const { username, labId, isAdmin } = decoded;
-      
-      if(typeof isAdmin !== 'boolean'){
-        return null
+
+      if (typeof isAdmin !== "boolean") {
+        return null;
       }
       const userType = isAdmin ? "admins" : "staffs";
-  
+
       const db = getClient();
-  
+
       // Find the user with the specific labId and username (directly match)
       const lab = await db.collection("labs").findOne(
         {
@@ -817,26 +824,28 @@ class Lab {
           projection: { [`${userType}.$`]: 1, _id: 0 }, // Only return the matched user
         }
       );
-  
+
       // If no lab or user found, return null
       if (!lab || !lab[userType]?.length) return null;
-  
+
       const user = lab[userType][0]; // As username is unique, take the first match
-  
+
       // Check if the refresh token is valid for the user
       if (!user.refreshTokens.includes(refreshToken)) return null;
-  
+
       // Generate a new access token
       const accessControl = isAdmin ? ["admin"] : user.accessControl;
       const payload = { id: user._id, username: user.username, labId, accessControl, isAdmin };
       const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-  
+
       return newAccessToken;
     } catch (e) {
       return handleError(e, "generateNewAccessToken");
     }
   }
 
+  // Function 20
+  // logout current session
   // Only Logout from the current device
   static async logout(labId, username, isAdmin, refreshToken) {
     try {
@@ -857,6 +866,7 @@ class Lab {
     }
   }
 
+  // Function 21
   // Logout from all devices
   static async logoutAll(labId, username, isAdmin) {
     try {

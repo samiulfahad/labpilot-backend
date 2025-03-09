@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 require('dotenv').config();
+const verifyAccessToken = require('./middlewares/auth');
 const invoiceController = require("./controller/invoice");
 const systemController = require("./controller/system");
 const labController = require("./controller/lab");
@@ -18,7 +19,12 @@ const app = express();
 
 //Middlewares
 app.use(express.json({ limit: "10kb" }));
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:5173", // Allow only your frontend
+  credentials: true, // Allow cookies and authorization headers
+};
+
+app.use(cors(corsOptions));
 
 app.get("/", (req, res, next) => {
   res.status(200).send({ success: true, msg: "Server is running" });
@@ -33,7 +39,7 @@ app.post(
 );
 
 app.get("/api/v1/invoice", invoiceController.getInvoiceById);
-app.get("/api/v1/invoice/all", invoiceController.getAllInvoices);
+app.get("/api/v1/invoice/all", verifyAccessToken, invoiceController.getAllInvoices);
 app.get("/api/v1/invoice/render-list", invoiceController.getInvoicesByDate);
 app.put("/api/v1/invoice/update/actions", invoiceController.putActions);
 app.put(

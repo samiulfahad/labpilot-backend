@@ -360,8 +360,7 @@ const login = async (req, res, next) => {
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/refresh",
+      sameSite: "strict"
     });
 
     res.json({ success: true, accessToken: result.accessToken, user: result.user });
