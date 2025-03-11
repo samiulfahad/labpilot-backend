@@ -2,6 +2,7 @@
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 const verifyAccessToken = require('./middlewares/auth');
@@ -25,6 +26,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser())
 
 app.get("/", (req, res, next) => {
   res.status(200).send({ success: true, msg: "Server is running" });
@@ -52,6 +54,8 @@ app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 
 app.post("/api/v1/lab/login", labController.login);
+app.post("/api/v1/lab/refresh-token", labController.refreshAccessToken)
+app.post("/api/v1/lab/logout", verifyAccessToken, labController.logout)
 app.get("/api/v1/lab/dataForNewInvoice", labController.getDataForNewInvoice);
 app.get("/api/v1/lab/cashmemo", labController.getCashMemo);
 app.get("/api/v1/lab/commission-tracker", labController.getCommissionTracker);

@@ -780,9 +780,9 @@ class Lab {
 
       // 5. Generate tokens
       const accessControl = isAdmin ? ["admin"] : user.accessControl;
-      const payload = { id: user._id, username: user.username, labId, accessControl, isAdmin };
-      const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-      const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+      const payload = { labId, username: user.username, isAdmin, accessControl };
+      const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRITY });
+      const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRITY });
 
       // 6. Store refresh token inside the user's own refreshTokens array (max 5 tokens)
       await db.collection("labs").updateOne(
@@ -805,7 +805,7 @@ class Lab {
     try {
       // Verify the refresh token
       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-      const { username, labId, isAdmin } = decoded;
+      const { labId, username, isAdmin } = decoded;
 
       if (typeof isAdmin !== "boolean") {
         return null;
@@ -835,8 +835,8 @@ class Lab {
 
       // Generate a new access token
       const accessControl = isAdmin ? ["admin"] : user.accessControl;
-      const payload = { id: user._id, username: user.username, labId, accessControl, isAdmin };
-      const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+      const payload = {  labId, username: user.username, isAdmin, accessControl };
+      const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRITY });
 
       return newAccessToken;
     } catch (e) {
@@ -844,11 +844,14 @@ class Lab {
     }
   }
 
-  // Function 20
+  // Function 19
   // logout current session
   // Only Logout from the current device
   static async logout(labId, username, isAdmin, refreshToken) {
     try {
+      if(typeof isAdmin !== "boolean") {
+        return null
+      }
       const db = getClient();
       const userType = isAdmin ? "admins" : "staffs";
 
@@ -866,10 +869,13 @@ class Lab {
     }
   }
 
-  // Function 21
+  // Function 20
   // Logout from all devices
   static async logoutAll(labId, username, isAdmin) {
     try {
+      if(typeof isAdmin !== "boolean") {
+        return null
+      }
       const db = getClient();
       const userType = isAdmin ? "admins" : "staffs";
 

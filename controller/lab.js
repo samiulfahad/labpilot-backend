@@ -354,7 +354,7 @@ const login = async (req, res, next) => {
 
     const result = await Lab.login(parseInt(labId), username, password.toString(), isAdmin);
 
-    if (!result) return res.status(401).json({ success: false, msg: "Invalid credentials" });
+    if (!result) return res.status(400).json({ success: false, msg: "Invalid credentials" });
 
     // Send refresh token in HttpOnly cookie
     res.cookie("refreshToken", result.refreshToken, {
@@ -374,15 +374,16 @@ const refreshAccessToken = async (req, res, next) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      return res.status(401).json({ success: false, msg: "Refresh token missing" });
+      return res.status(400).json({ success: false, msg: "Refresh token missing" });
     }
 
     const newAccessToken = await Lab.generateNewAccessToken(refreshToken);
 
     if (newAccessToken) {
+      console.log('token refreshed')
       return res.json({ success: true, accessToken: newAccessToken });
     } else {
-      return res.status(403).json({ success: false, msg: "Invalid refresh token" });
+      return res.status(403).json({ success: false, forcedLogout: true, msg: "Invalid refresh token" });
     }
   } catch (e) {
     next(e);
@@ -392,7 +393,7 @@ const refreshAccessToken = async (req, res, next) => {
 // Logout the current device
 const logout = async (req, res, next) => {
   try {
-    const { labId, username, isAdmin } = req.body;
+    const { labId, username, isAdmin } = req.user;
     const refreshToken = req.cookies.refreshToken; // Get token from cookie
 
     if (!labId || !username || isAdmin === undefined || !refreshToken) {
@@ -404,10 +405,10 @@ const logout = async (req, res, next) => {
     const result = await Lab.logout(parseInt(labId), username, isAdmin, refreshToken);
 
     if (!result) {
-      return res.status(401).json({ success: false, msg: "Logout failed" });
+      return res.status(400).json({ success: false, msg: "Logout failed" });
     }
 
-    res.clearCookie("refreshToken", { path: "/refresh", httpOnly: true, sameSite: "strict" });
+    res.clearCookie("refreshToken", { httpOnly: true, sameSite: "strict" });
     res.status(200).json({ success: true, msg: "Logged out successfully" });
   } catch (e) {
     next(e);
@@ -429,7 +430,7 @@ const logoutAll = async (req, res, next) => {
     const result = await Lab.logout(parseInt(labId), username, isAdmin);
 
     if (!result) {
-      return res.status(401).json({ success: false, msg: "Logout failed" });
+      return res.status(400).json({ success: false, msg: "Logout failed" });
     }
 
     // Clear refresh token cookie
