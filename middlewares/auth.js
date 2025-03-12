@@ -4,7 +4,7 @@ const verifyAccessToken = (req, res, next) => {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ success: false, msg: "Unauthorized" });
   }
-
+ 
   const token = authHeader.split(" ")[1];
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -13,6 +13,7 @@ const verifyAccessToken = (req, res, next) => {
     // console.log(req.user)
     next();
   });
+
 };
 
 module.exports = verifyAccessToken;

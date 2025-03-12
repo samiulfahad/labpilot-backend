@@ -355,12 +355,11 @@ const login = async (req, res, next) => {
     const result = await Lab.login(parseInt(labId), username, password.toString(), isAdmin);
 
     if (!result) return res.status(400).json({ success: false, msg: "Invalid credentials" });
-
-    // Send refresh token in HttpOnly cookie
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict"
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      path: "/api/v1/lab/auth/refresh-token", // ← RESTRICT TO SPECIFIC PATH
     });
 
     res.json({ success: true, accessToken: result.accessToken, user: result.user });
@@ -408,7 +407,11 @@ const logout = async (req, res, next) => {
       return res.status(400).json({ success: false, msg: "Logout failed" });
     }
 
-    res.clearCookie("refreshToken", { httpOnly: true, sameSite: "strict" });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      path: "/api/v1/lab/auth/refresh-token",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
+    });
     res.status(200).json({ success: true, msg: "Logged out successfully" });
   } catch (e) {
     next(e);
@@ -434,7 +437,11 @@ const logoutAll = async (req, res, next) => {
     }
 
     // Clear refresh token cookie
-    res.clearCookie("refreshToken", { path: "/refresh", httpOnly: true, sameSite: "strict" });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      path: "/api/v1/lab/auth/refresh-token",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
+    });
 
     res.status(200).json({ success: true, msg: "Logged out successfully" });
   } catch (e) {
