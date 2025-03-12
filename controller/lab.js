@@ -371,17 +371,29 @@ const login = async (req, res, next) => {
 const refreshAccessToken = async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-
+    // console.log(refreshToken);
     if (!refreshToken) {
-      return res.status(400).json({ success: false, msg: "Refresh token missing" });
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        path: "/api/v1/lab/auth/refresh-token",
+      });
+      return res.status(400).json({ success: false, forcedLogout: true, msg: "Refresh token missing" });
     }
 
     const newAccessToken = await Lab.generateNewAccessToken(refreshToken);
 
     if (newAccessToken) {
-      console.log('token refreshed')
+      console.log("token refreshed");
       return res.json({ success: true, accessToken: newAccessToken });
     } else {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        path: "/api/v1/lab/auth/refresh-token",
+      });
       return res.status(403).json({ success: false, forcedLogout: true, msg: "Invalid refresh token" });
     }
   } catch (e) {
@@ -409,8 +421,9 @@ const logout = async (req, res, next) => {
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       path: "/api/v1/lab/auth/refresh-token",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
     });
     res.status(200).json({ success: true, msg: "Logged out successfully" });
   } catch (e) {
@@ -439,8 +452,9 @@ const logoutAll = async (req, res, next) => {
     // Clear refresh token cookie
     res.clearCookie("refreshToken", {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       path: "/api/v1/lab/auth/refresh-token",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "none",
     });
 
     res.status(200).json({ success: true, msg: "Logged out successfully" });
