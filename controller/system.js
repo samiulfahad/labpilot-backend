@@ -2,14 +2,14 @@
 
 const System = require("../database/system");
 
-const postUser = async (req, res, next) => {
-  const { labName, contact, email } = req.body;
-  if (!labName || !contact || !email) {
+const postLab = async (req, res, next) => {
+  const { labName, primaryNo, secondaryNo, email, address } = req.body;
+  if (!labName || !primaryNo || !email || !address) {
     return res.status(400).send({ success: false, msg: "Missing required fields" });
   }
   try {
-    const user = { labName, contact, email, testList: [], referrerList: [], userList:[] };
-    const result = await System.createUser(user);
+    const lab = { labName, primaryNo, secondaryNo, email, address, admins: [], staffs: [], referrers: [], testList: [] };
+    const result = await System.addLab(lab);
     if (result) {
       return res.status(201).send({ success: true });
     } else {
@@ -51,4 +51,4 @@ const getAllTest = async (req, res, next) => {
   }
 };
 
-module.exports = { postUser, postTest, getAllTest };
+module.exports = { postLab, postTest, getAllTest };

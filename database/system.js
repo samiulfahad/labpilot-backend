@@ -3,8 +3,7 @@
 const { getClient } = require("./connection");
 
 const handleError = (e, methodName) => {
-  console.log("Error in database operation");
-  console.log(`${methodName} produced an error`);
+  console.log(`error in database => system => ${methodName}`);
   console.log(e.message);
   return null;
 };
@@ -12,14 +11,14 @@ const handleError = (e, methodName) => {
 class System {
   constructor() { }
   
-  static async createUser(user) {
+  static async addLab(lab) {
     try {
       const db = getClient()
-      const result = await db.collection("users").insertOne(user)
+      const result = await db.collection("labs").insertOne(lab)
       // console.log(result);
       return result.insertedId ? true : null
     } catch (e) {
-      return handleError(e, "createUser => System")
+      return handleError(e, "addLab => System")
      }
   }
 

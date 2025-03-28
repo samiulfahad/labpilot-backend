@@ -72,8 +72,8 @@ app.put("/api/v1/lab/testlist/update", labController.putTestList);
 
 
 app.get("/api/v1/system/test/all", systemController.getAllTest);
+app.post("/api/v1/system/add/lab", systemController.postLab)
 app.post("/api/v1/system/test/add", systemController.postTest);
-app.post("/api/v1/system/user/add", systemController.postUser);
 
 
 // 404 Not Found Handler
@@ -104,7 +104,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the Server
-app.listen(3000, async () => {
+app.listen(3001, async () => {
   console.log("Server is running");
   try {
     await connect();

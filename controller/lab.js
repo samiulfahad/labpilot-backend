@@ -463,6 +463,7 @@ const logoutAll = async (req, res, next) => {
   }
 };
 
+
 module.exports = {
   getCashMemo,
   getCommissionTracker,
