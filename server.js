@@ -43,6 +43,7 @@ app.post(
 app.get("/api/v1/invoice", invoiceController.getInvoiceById);
 app.get("/api/v1/invoice/all", verifyAccessToken, invoiceController.getAllInvoices);
 app.get("/api/v1/invoice/render-list", invoiceController.getInvoicesByDate);
+
 app.put("/api/v1/invoice/update/actions", invoiceController.putActions);
 app.put(
   "/api/v1/invoice/update/patient-data",
@@ -50,6 +51,7 @@ app.put(
   handleValidationErrors,
   invoiceController.putPatientData
 );
+
 app.get("/api/v1/invoice/date", invoiceController.getInvoicesByDate);
 app.get("/api/v1/invoice/clear", invoiceController.dropCollection);
 

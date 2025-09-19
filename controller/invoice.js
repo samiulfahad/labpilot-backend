@@ -1,17 +1,17 @@
 /** @format */
 
 const { ObjectId } = require("mongodb");
-const {USER_ID} = require('../config');
+const { USER_ID } = require('../config');
 
 const Invoice = require("../database/invoice");
-const {generateCurrentDate} = require('../helpers/functions');
+const { generateCurrentDate } = require('../helpers/functions');
 
 // Create a new invoice
 const postInvoice = async (req, res, next) => {
   try {
     const { patientData, invoiceData } = req.body;
     const invoice = new Invoice(patientData, invoiceData);
-    const invoiceId = await Invoice.insertOne(invoice);
+    const invoiceId = await Invoice.create(invoice);
     if (invoiceId) {
       return res.status(201).send({ success: true, msg: "Invoice created", invoiceId });
     } else {
@@ -212,19 +212,52 @@ const putActions = async (req, res, next) => {
   }
 };
 
-// Send SMS to Patient
-const notifyPatient = async (req, res, next) => {
+
+// Combined update controller for Function 3
+const editInvoiceData = async (req, res, next) => {
   try {
-    const result = await Invoice.updateByInvoiceId(req.body.invoiceId, { notified: true });
-    if (result) {
-      res.status(201).send({ success: true, total: result.total, invoices: result.invoices });
-    } else {
-      throw new Error("Could not get send SMS @statusCode 500");
+    const { _id, updateType, payload } = req.body;
+
+    if (!_id || !updateType || !payload) {
+      return res.status(400).send({ success: false, msg: "Missing required fields" });
     }
+
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).send({ success: false, msg: "Object ID is NOT valid" });
+    }
+
+    if (updateType === 'patientData') {
+      if (typeof payload !== 'object' || !payload.name || !payload.age || !payload.contact || !payload.gender || !payload.doctorName) {
+        return res.status(400).send({ success: false, msg: "Invalid patientData structure" });
+      }
+      
+      const result = await Invoice.updateById(_id, updateType, payload);
+      return result ? 
+        res.status(200).send({ success: true, message: "Patient data updated successfully" }) :
+        res.status(404).send({ success: false, message: "Invoice not found" });
+    }
+
+    else if (updateType === 'invoiceStatus') {
+      let status;
+      if (payload === "payment") status = "paid";
+      else if (payload === "reportDelivery") status = "delivered";
+      else return res.status(400).send({ success: false, msg: "Invalid invoice status" });
+
+      const result = await Invoice.updateById(_id, updateType, status);
+      return result ? 
+        res.status(200).send({ success: true, message: "Status updated successfully" }) :
+        res.status(404).send({ success: false, message: "Invoice not found" });
+    }
+
+    else {
+      return res.status(400).send({ success: false, msg: "Invalid update type" });
+    }
+
   } catch (e) {
     next(e);
   }
 };
+
 
 // Drop a collection
 const dropCollection = async (req, res, next) => {
@@ -244,9 +277,9 @@ module.exports = {
   postInvoice,
   putActions,
   putPatientData,
+  editInvoiceData,
   getInvoiceById,
   getInvoicesByDate,
   getAllInvoices,
-  notifyPatient,
   dropCollection,
 };

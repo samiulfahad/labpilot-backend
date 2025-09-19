@@ -13,6 +13,7 @@ const handleError = (e, methodName) => {
 };
 
 class Invoice {
+
   constructor(patientData, invoiceData) {
     this.invoiceId = generateInvoiceId();
     this.referrerId = invoiceData.referrerId;
@@ -33,6 +34,19 @@ class Invoice {
     this.labId = "bhaluka123";
   }
 
+  // Function 1: Create invoice
+  static async create(doc) {
+    try {
+      const db = getClient();
+      const result = await db.collection("collection-1").create(doc);
+      return result.insertedId ? doc.invoiceId : null;
+    } catch (e) {
+      return handleError(e, "create");
+    }
+  }
+
+
+  // Function 2: Find all invoices by date range
   static async findByDateRange(start, end, referrerId = null) {
     try {
       const db = getClient();
@@ -68,18 +82,8 @@ class Invoice {
     }
   }
 
-  // Create invoice
-  static async insertOne(doc) {
-    try {
-      const db = getClient();
-      const result = await db.collection("collection-1").insertOne(doc);
-      return result.insertedId ? doc.invoiceId : null;
-    } catch (e) {
-      return handleError(e, "insertOne");
-    }
-  }
 
-  // Find invoice by id
+  // Function 3: Find invoice by id 
   static async findById(id, referrerName) {
     const userId = "675097ebd9d252419e9a7e98"
     try {
@@ -116,19 +120,20 @@ class Invoice {
             }
           }
         ]).toArray();
-      
+
         referrer = referrer.length > 0 ? referrer[0].referrerName : "NOT AVAILABLE";
 
       }
-      
 
-      return invoice ? {...invoice, referrerName: referrer} : null;
+
+      return invoice ? { ...invoice, referrerName: referrer } : null;
     } catch (e) {
       return handleError(e, "findById");
     }
   }
 
-  // Find All Invoices
+
+  // Function 4: Find All Invoices
   static async findAll() {
     try {
       const db = getClient();
@@ -152,7 +157,7 @@ class Invoice {
     }
   }
 
-  // Update Patient Data
+  // Function 5: Update Invoice
   static async updateById(_id, patientData) {
     const { name, age, contact, gender, doctorName } = patientData;
     const update = { name, age, contact, gender, doctorName };
@@ -165,6 +170,9 @@ class Invoice {
       return handleError(e, "updateById");
     }
   }
+
+
+
 
   // Update invoice actions
   static async updateActions(_id, update) {
@@ -188,7 +196,43 @@ class Invoice {
     }
   }
 
-  // Count all documents of a collection
+
+  // Function 5: Update Invoice 
+static async updateById2(_id, updateType, payload) {
+  try {
+    const db = getClient();
+    const filter = { _id: new ObjectId(_id) };
+    let updateOperation;
+    
+    if (updateType === 'patientData') {
+      const { name, age, contact, gender, doctorName } = payload;
+      updateOperation = { $set: { name, age, contact, gender, doctorName } };
+    } 
+    else if (updateType === 'invoiceStatus') {
+      switch (payload) {
+        case "paid":
+          updateOperation = [{ $set: { paid: "$netAmount" } }];
+          break;
+        case "delivered":
+          updateOperation = { $set: { delivered: true } };
+          break;
+        default:
+          return null;
+      }
+    }
+    else {
+      return null;
+    }
+
+    const result = await db.collection("collection-1").updateOne(filter, updateOperation);
+    return result.modifiedCount === 1 ? true : null;
+    
+  } catch (e) {
+    return handleError(e, "updateById");
+  }
+}
+
+  // Function 6: Count all documents of a collection
   static async countAll() {
     try {
       const db = getClient();
@@ -201,7 +245,7 @@ class Invoice {
     }
   }
 
-  // Drop a collection
+  // Function 7: Drop a collection
   static async dropCollection() {
     try {
       const db = getClient();

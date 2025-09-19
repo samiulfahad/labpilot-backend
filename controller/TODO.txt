@@ -1,0 +1,10 @@
+Task 1;
+Goal: Make lab registration page working via admin front end and backend
+Job: Admin can register a new lab via admin panel
+
+
+Task 2
+Goal: One Single function (editInvoiceData ) to update patient data and invoice status (Report Delivery Status, Payment Status)
+Job: 
+    1. integrate editInvoiceData fn (/controller/invoice) with api end points (/api/v1/invoice/update/actions and /api/v1/invoice/update/patient-data)
+    2. integrate updateById2 fn (/database/invoice) with database operation
