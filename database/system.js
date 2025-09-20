@@ -10,6 +10,9 @@ const handleError = (e, methodName) => {
 
 class System {
   constructor() { }
+
+  
+
   
   static async addLab(lab) {
     try {
