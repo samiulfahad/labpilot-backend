@@ -1,0 +1,78 @@
+
+
+###### Lab Object ######
+
+labName: string,
+address: string,
+email: string,
+contact1: int,
+contact2: int,
+activeStatus: boolean,
+hasWarning: boolean,
+warning: string,
+hasNotification: boolean,
+notification: [
+    {
+        msg: string,
+        isRead: boolean
+    },
+
+    {
+        notification2
+    },
+
+    {
+        notification3
+    }
+]
+invoicePrice: int,
+labIncentive: int,
+totalReceipt: int // Number of invoices * invoicePrice,
+payableAmount: int,
+billingHistory: array of object [ 
+    {
+        month: string, 
+        totalInvoice: int, 
+        totalReceipt: number of invoice * invoicePrice
+    } ,
+    {
+        month2
+    },
+    {
+        month3
+    }
+    ]
+staffs: array of object [
+    {
+        _id: mongoDB Object ID
+        name: string,
+        username: string,
+        email: string,
+        password: string,
+        contactNumber: int,
+        access: ['cashMemo', 'createInvoice', 'addStaff', 'modifyStaff', 'terminateStaff', ....]
+        loginTokens: ['token1', 'token2',.... max5]
+    },
+    {
+        staff2
+    },
+    {
+        staff3
+    },
+    ]
+admins: array of objects [
+    {
+        adminName: string,
+        username: string,
+        password: string,
+        loginTokens: ['token1', 'token2', ....max5]
+
+    },
+    {
+        admin2
+    },
+    {
+        admin3
+    }
+]
+
