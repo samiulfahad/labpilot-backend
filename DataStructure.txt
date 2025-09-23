@@ -3,6 +3,8 @@
 ###### Lab Object ######
 
 labName: string,
+labId: int,
+zone: string,
 address: string,
 email: string,
 contact1: int,
