@@ -11,17 +11,18 @@ const handleError = (e, methodName) => {
 };
 
 class Lab {
-  constructor(labName, address, zone, subZone, contact1, contact2, email, activeStatus, systemId) {
+  constructor(labName, labId, address, zone, subZone, contact1, contact2, email, activeStatus, systemId) {
     this.labName = labName;
+    this.labId = labId;
     this.address = address;
     this.zone = zone;
     this.subZone = subZone;
     this.contact1 = contact1;
     this.contact2 = contact2;
     this.email = email;
+    this.activeStatus = activeStatus;
     this.invoicePrice = 10;
     this.labIncentive = 4;
-    this.activeStatus = activeStatus ?? true;
     this.hasWarning = false;
     this.warning = "";
     this.totalReceipt = 0;
@@ -36,9 +37,7 @@ class Lab {
   }
 
 
-  // ============ INSTANCE METHODS ============
-
-  // Save new lab to database
+  // Function 1: Save new lab to database
   async save() {
     try {
       const db = getClient();
@@ -49,308 +48,136 @@ class Lab {
     }
   }
 
+  static test() {
+    console.log('Test successful')
+  }
 
 
-  // Add notification to this lab
-  async addNotification(message) {
-    const newNotification = {
-      msg: message,
-      isRead: false,
-      timestamp: new Date()
-    };
+  // Function 2: Update Lab
+  static async updateById(labId, newData, systemId) {
+    try {
+      const db = getClient();
+      // Prepare update object
+      const updateFields = { ...newData, updatedAt: new Date(), updatedBy: systemId };
 
-    this.notification.unshift(newNotification);
-    this.hasNotification = true;
-    this.updatedAt = new Date();
+      console.log(updateFields)
+      const result = await db.collection("labs").updateOne(
+        { labId: labId }, // Filter by labId (numeric)
+        { $set: updateFields }
+      );
 
-    // Update in database
-    const db = getClient();
-    const result = await db.collection("labs").updateOne(
-      { _id: new ObjectId(this._id) },
-      {
-        $push: { notification: { $each: [newNotification], $position: 0 } },
-        $set: {
-          hasNotification: true,
-          updatedAt: new Date()
+      return result.modifiedCount > 0;
+    } catch (e) {
+      return handleError(e, "updateLab");
+    }
+  }
+
+
+  // Function 3a: Soft delete - mark as deleted without actually removing
+  static async softDeleteById(labId, systemId) {
+    try {
+      const db = getClient();
+
+      const result = await db.collection("labs").updateOne(
+        { labId: labId },
+        {
+          $set: {
+            isDeleted: true,
+            deletedAt: new Date(),
+            deletedBy: systemId
+          }
         }
+      );
+
+      return result.modifiedCount > 0;
+    } catch (e) {
+      return handleError(e, "softDeleteById");
+    }
+  }
+
+  // Function 3b: Hard delete
+  static async deleteById(labId, systemId) {
+    try {
+      const db = getClient();
+
+      // First, find the lab to be deleted
+      const labToDelete = await db.collection("labs").findOne({ labId: labId });
+
+      if (!labToDelete) {
+        console.log("Lab not found for deletion");
+        return false;
       }
-    );
 
-    return result.modifiedCount === 1 ? newNotification : null;
-  }
+      // Prepare the deleted lab document with additional fields
+      const deletedLab = {
+        ...labToDelete,
+        deletedAt: new Date(),
+        deletedBy: systemId,
+        originalId: labToDelete._id // Keep reference to original document ID
+      };
 
-  // Add billing history to this lab
-  async addBillingHistory(month, totalInvoice) {
-    const totalReceipt = totalInvoice * this.invoicePrice;
-    const billingRecord = {
-      month: month,
-      totalInvoice: totalInvoice,
-      totalReceipt: totalReceipt,
-      dateAdded: new Date()
-    };
+      // Remove the original _id to avoid duplicate key error when inserting
+      delete deletedLab._id;
 
-    this.billingHistory.unshift(billingRecord);
-    this.updateTotalReceipt();
-    this.calculatePayableAmount();
-    this.updatedAt = new Date();
+      // First, copy the lab data to deletedLabs collection
+      const archiveResult = await db.collection("deletedLabs").insertOne(deletedLab);
 
-    // Update in database
-    const db = getClient();
-    const result = await db.collection("labs").updateOne(
-      { _id: new ObjectId(this._id) },
-      {
-        $push: { billingHistory: { $each: [billingRecord], $position: 0 } },
-        $set: {
-          totalReceipt: this.totalReceipt,
-          payableAmount: this.payableAmount,
-          updatedAt: new Date()
-        }
+      if (!archiveResult.insertedId) {
+        console.log("Failed to archive lab data");
+        return false;
       }
-    );
 
-    return result.modifiedCount === 1 ? billingRecord : null;
-  }
+      // Then, delete the lab from the original collection
+      const deleteResult = await db.collection("labs").deleteOne({ labId: labId });
 
-  // Business logic methods (no database operations)
-  updateTotalReceipt() {
-    const totalInvoices = this.billingHistory.reduce((sum, record) => sum + record.totalInvoice, 0);
-    this.totalReceipt = totalInvoices * this.invoicePrice;
-    return this.totalReceipt;
-  }
+      if (deleteResult.deletedCount > 0) {
+        console.log(`Lab ${labId} successfully deleted and archived`);
+        return true;
+      } else {
+        // If deletion failed but we already archived, we might want to clean up
+        console.log("Deletion failed after archiving - manual cleanup may be needed");
+        // Optional: You can choose to remove the archived document if deletion fails
+        // await db.collection("deletedLabs").deleteOne({ _id: archiveResult.insertedId });
+        return false;
+      }
 
-  calculatePayableAmount() {
-    this.payableAmount = Math.max(0, this.totalReceipt - this.labIncentive);
-    return this.payableAmount;
-  }
-
-  // ============ STATIC METHODS (Database Operations) ============
-
-  // Function 1: Find lab by ID
-  static async findById(labId) {
-    try {
-      const db = getClient();
-      const lab = await db.collection("labs").findOne({ _id: new ObjectId(labId) });
-      return lab;
     } catch (e) {
-      return handleError(e, "findById");
-    }
-  }
-
-  // Function 2: Find lab by email
-  static async findByEmail(email) {
-    try {
-      const db = getClient();
-      const lab = await db.collection("labs").findOne({ email: email });
-      return lab;
-    } catch (e) {
-      return handleError(e, "findByEmail");
-    }
-  }
-
-  // Function 3: Find all labs
-  static async findAll(projection = {}) {
-    try {
-      const db = getClient();
-      const labs = await db.collection("labs").find({}).project(projection).toArray();
-      const total = await db.collection("labs").countDocuments();
-      return { total, labs };
-    } catch (e) {
-      return handleError(e, "findAll");
-    }
-  }
-
-  // Function 4: Find labs by zone
-  static async findByZone(zone, projection = {}) {
-    try {
-      const db = getClient();
-      const labs = await db.collection("labs").find({ zone: zone }).project(projection).toArray();
-      return labs;
-    } catch (e) {
-      return handleError(e, "findByZone");
-    }
-  }
-
-  // Function 5: Find active labs
-  static async findActiveLabs() {
-    try {
-      const db = getClient();
-      const labs = await db.collection("labs").find({ activeStatus: true }).toArray();
-      return labs;
-    } catch (e) {
-      return handleError(e, "findActiveLabs");
-    }
-  }
-
-  // Function 6: Update lab by ID
-  static async updateById(labId, updateData) {
-    try {
-      const db = getClient();
-      const filter = { _id: new ObjectId(labId) };
-      updateData.updatedAt = new Date();
-
-      const result = await db.collection("labs").updateOne(filter, { $set: updateData });
-      return result.modifiedCount === 1;
-    } catch (e) {
-      return handleError(e, "updateById");
-    }
-  }
-
-  // Function 7: Add staff to lab
-  static async addStaff(labId, staffData) {
-    try {
-      const db = getClient();
-      const staff = {
-        _id: new ObjectId(),
-        name: staffData.name,
-        username: staffData.username,
-        email: staffData.email,
-        password: staffData.password,
-        contactNumber: staffData.contactNumber,
-        access: staffData.access || [],
-        loginTokens: staffData.loginTokens || [],
-        joinDate: new Date(),
-        isActive: true
-      };
-
-      const result = await db.collection("labs").updateOne(
-        { _id: new ObjectId(labId) },
-        {
-          $push: { staffs: staff },
-          $set: { updatedAt: new Date() }
-        }
-      );
-
-      return result.modifiedCount === 1 ? staff : null;
-    } catch (e) {
-      return handleError(e, "addStaff");
-    }
-  }
-
-  // Function 8: Add notification to lab by ID
-  static async addNotificationById(labId, message) {
-    try {
-      const db = getClient();
-      const newNotification = {
-        msg: message,
-        isRead: false,
-        timestamp: new Date()
-      };
-
-      const result = await db.collection("labs").updateOne(
-        { _id: new ObjectId(labId) },
-        {
-          $push: { notification: { $each: [newNotification], $position: 0 } },
-          $set: {
-            hasNotification: true,
-            updatedAt: new Date()
-          }
-        }
-      );
-
-      return result.modifiedCount === 1 ? newNotification : null;
-    } catch (e) {
-      return handleError(e, "addNotificationById");
-    }
-  }
-
-  // Function 9: Add billing history to lab by ID
-  static async addBillingHistoryById(labId, month, totalInvoice) {
-    try {
-      const db = getClient();
-
-      // First get the lab to calculate values
-      const lab = await this.findById(labId);
-      if (!lab) return null;
-
-      const totalReceipt = totalInvoice * lab.invoicePrice;
-      const payableAmount = Math.max(0, (lab.totalReceipt + totalReceipt) - lab.labIncentive);
-
-      const billingRecord = {
-        month: month,
-        totalInvoice: totalInvoice,
-        totalReceipt: totalReceipt,
-        dateAdded: new Date()
-      };
-
-      const result = await db.collection("labs").updateOne(
-        { _id: new ObjectId(labId) },
-        {
-          $push: { billingHistory: { $each: [billingRecord], $position: 0 } },
-          $inc: { totalReceipt: totalReceipt },
-          $set: {
-            payableAmount: payableAmount,
-            updatedAt: new Date()
-          }
-        }
-      );
-
-      return result.modifiedCount === 1 ? billingRecord : null;
-    } catch (e) {
-      return handleError(e, "addBillingHistoryById");
-    }
-  }
-
-  // Function 10: Set warning for lab
-  static async setWarning(labId, warningMessage) {
-    try {
-      const db = getClient();
-      const result = await db.collection("labs").updateOne(
-        { _id: new ObjectId(labId) },
-        {
-          $set: {
-            warning: warningMessage,
-            hasWarning: true,
-            updatedAt: new Date()
-          }
-        }
-      );
-      return result.modifiedCount === 1;
-    } catch (e) {
-      return handleError(e, "setWarning");
-    }
-  }
-
-  // Function 11: Clear warning for lab
-  static async clearWarning(labId) {
-    try {
-      const db = getClient();
-      const result = await db.collection("labs").updateOne(
-        { _id: new ObjectId(labId) },
-        {
-          $set: {
-            warning: "",
-            hasWarning: false,
-            updatedAt: new Date()
-          }
-        }
-      );
-      return result.modifiedCount === 1;
-    } catch (e) {
-      return handleError(e, "clearWarning");
-    }
-  }
-
-  // Function 12: Count all labs
-  static async countAll() {
-    try {
-      const db = getClient();
-      const count = await db.collection("labs").countDocuments();
-      return count;
-    } catch (e) {
-      return handleError(e, "countAll");
-    }
-  }
-
-  // Function 13: Delete lab by ID
-  static async deleteById(labId) {
-    try {
-      const db = getClient();
-      const result = await db.collection("labs").deleteOne({ _id: new ObjectId(labId) });
-      return result.deletedCount === 1;
-    } catch (e) {
+      console.error("Error in deleteById:", e.message);
       return handleError(e, "deleteById");
     }
   }
+
+
+
+  // Function 4: Find a lab
+  static async find(field, value) {
+
+    try {
+      const db = getClient();
+      const lab = await db.collection("labs").find({ [field]: value }).toArray();
+      if (lab.length > 0) {
+        return lab
+      } else {
+        return 0
+      }
+    } catch (e) {
+      return handleError(e, "find");  // This returns the result of handleError
+    }
+  }
+
+
+  // Function 4: Find a lab
+  static async findAll() {
+
+    try {
+      const db = getClient();
+      const lab = await db.collection("labs").find({}).toArray();
+      return lab ? lab : 0
+    } catch (e) {
+      return handleError(e, "find");  // This returns the result of handleError
+    }
+  }
+
 }
 
 module.exports = Lab;

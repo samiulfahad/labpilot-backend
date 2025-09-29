@@ -107,19 +107,72 @@ content-type: application/json
 
 }
 
-# Create a new lab
 
+#  ################### System => lab  ####################### 
+
+# Create a new lab
 ###
 POST http://localhost:3000/api/v1/system/lab/add HTTP/1.1
 content-type: application/json
 
 {
-    "labName": "City Diagnostic Center 2",
-    "zone": "Mymensingh",
+    "labName": "City Diagnostic Center  ",
+    "labId": 112233,
     "address": "123 Medical Street, Healthcare City",
+    "contact1": "01723939836",
+    "contact2": "98765432101",
     "email": "contact@citydiagnostic.com",
-    "contact1": 1234567890,
-    "contact2": 9876543210,
-    "invoicePrice": 10,
-    "labIncentive": 5
+    "zone": "Mymensingh",
+    "subZone":"Bhaluka",
+    "activeStatus": true
 }
+
+
+# Edit lab Data
+###
+PATCH http://localhost:3000/api/v1/system/lab/edit HTTP/1.1
+content-type: application/json
+
+{
+    "labName": "xCity Diagnostic Center ",
+    "labId": 112233,
+    "address": "123 Medical Street, Healthcare City",
+    "contact1": 12345678901,
+    "contact2": 98765432101,
+    "email": "contact@citydiagnostic.com",
+    "zone": "Dhaka",
+    "subZone":"Mohakhali",
+    "activeStatus": true
+}
+
+# Get a lab by labId, email, contact
+###
+GET http://localhost:3000/api/v1/system/lab/search HTTP/1.1
+content-type: application/json
+
+{
+    "field":"labId",
+    "value": 112244
+}
+
+# Find All Labs
+###
+GET http://localhost:3000/api/v1/system/lab/all HTTP/1.1
+content-type: application/json
+
+
+# Delete a lab
+###
+DELETE http://localhost:3000/api/v1/system/lab/delete HTTP/1.1
+content-type: application/json
+
+{
+    "labId": 112244
+}
+
+
+
+
+
+
+

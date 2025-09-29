@@ -1,5 +1,8 @@
+Running Task 1
+Todo- While returning lab obj, remove sensitive data
+
 Task 1;
-Goal: Make lab registration page working via admin front end and backend
+Goal: Make lab registration and edit page working via admin front end and backend
 Job: Admin can register a new lab via admin panel
 
 
@@ -11,12 +14,16 @@ Job:
 
 
 
-
 Later Task 1: add createdBy and createdAt field in lab object while create a new lab. (fn postLab)
 Goal: Store info about the user who created the lab and when it was created
 
 Later Task 2: add createdBy field in invoice object while create a new invoice.
 Goal: Store info about the user who created the invoice
+
+Later Task 3: delete all invoice of a lab when the lab is deleted.
+Goal: Store info about the user who created the invoice
+
+
 
 
 

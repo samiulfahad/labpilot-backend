@@ -2,23 +2,6 @@
 
 const System = require("../database/system");
 
-const postLab = async (req, res, next) => {
-  const { labName, primaryNo, secondaryNo, email, address } = req.body;
-  if (!labName || !primaryNo || !email || !address) {
-    return res.status(400).send({ success: false, msg: "Missing required fields" });
-  }
-  try {
-    const lab = { labName, primaryNo, secondaryNo, email, address, admins: [], staffs: [], referrers: [], testList: [] };
-    const result = await System.addLab(lab);
-    if (result) {
-      return res.status(201).send({ success: true });
-    } else {
-      return res.status(400).send({ success: false });
-    }
-  } catch (e) {
-    next(e);
-  }
-};
 
 const postTest = async (req, res, next) => {
   const { name, code, description, type, format } = req.body;
@@ -51,4 +34,4 @@ const getAllTest = async (req, res, next) => {
   }
 };
 
-module.exports = { postLab, postTest, getAllTest };
+module.exports = { postTest, getAllTest };

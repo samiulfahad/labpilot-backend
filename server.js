@@ -13,8 +13,11 @@ const labAccountController = require('./controller/system/labAccount')
 
 const { connect } = require("./database/connection");
 
+// Input Data validation Rules
 const { patientValidationRules } = require("./validations/patientData");
 const { invoiceValidationRules } = require("./validations/invoiceData");
+const { labAccountValidationRules, validateLabId } = require("./validations/labAccount")
+const { searchLabValidationRules } = require("./validations/labSearch")
 const handleValidationErrors = require("./validations/handleValidationErrors");
 
 const app = express();
@@ -73,12 +76,43 @@ app.get("/api/v1/lab/referrer/all", labController.getReferrerList);
 app.put("/api/v1/lab/test/update", labController.putTest);
 app.put("/api/v1/lab/testlist/update", labController.putTestList);
 
-
+// System Routes
 app.get("/api/v1/system/test/all", systemController.getAllTest);
-app.post("/api/v1/system/add/lab", systemController.postLab)
 app.post("/api/v1/system/test/add", systemController.postTest);
 
-app.post("/api/v1/system/lab/add", labAccountController.postLab)
+
+// Register a new lab
+app.post("/api/v1/system/lab/add",
+  labAccountValidationRules,
+  handleValidationErrors,
+  labAccountController.postLab
+)
+
+// Search a lab
+app.get("/api/v1/system/lab/search",
+  searchLabValidationRules,
+  handleValidationErrors,
+  labAccountController.getLab
+)
+
+// List of all labs
+app.get("/api/v1/system/lab/all", labAccountController.getAllLabs)
+
+// Edit lab data
+app.patch("/api/v1/system/lab/edit",
+  labAccountValidationRules,
+  handleValidationErrors,
+  labAccountController.patchLab
+)
+
+// delete a lab
+app.delete("/api/v1/system/lab/delete",
+  validateLabId,
+  handleValidationErrors,
+  labAccountController.deleteLab
+)
+
+
 
 
 // 404 Not Found Handler
