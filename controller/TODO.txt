@@ -8,3 +8,15 @@ Goal: One Single function (editInvoiceData ) to update patient data and invoice 
 Job: 
     1. integrate editInvoiceData fn (/controller/invoice) with api end points (/api/v1/invoice/update/actions and /api/v1/invoice/update/patient-data)
     2. integrate updateById2 fn (/database/invoice) with database operation
+
+
+
+
+Later Task 1: add createdBy and createdAt field in lab object while create a new lab. (fn postLab)
+Goal: Store info about the user who created the lab and when it was created
+
+Later Task 2: add createdBy field in invoice object while create a new invoice.
+Goal: Store info about the user who created the invoice
+
+
+

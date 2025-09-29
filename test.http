@@ -106,3 +106,21 @@ content-type: application/json
    "dateString": "2024-12-06"
 
 }
+
+# Create a new lab
+
+###
+POST http://localhost:3000/api/v1/system/lab/add HTTP/1.1
+content-type: application/json
+
+{
+    "labName": "City Diagnostic Center",
+    "zone": "Mymensingh",
+    "address": "123 Medical Street, Healthcare City",
+    "email": "contact@citydiagnostic.com",
+    "contact1": 1234567890,
+    "contact2": 9876543210,
+    "invoicePrice": 10,
+    "labIncentive": 5,
+    "activeStatus": true
+}

@@ -9,6 +9,7 @@ const verifyAccessToken = require('./middlewares/auth');
 const invoiceController = require("./controller/invoice");
 const systemController = require("./controller/system");
 const labController = require("./controller/lab");
+const labAccountController = require('./controller/system/labAccount')
 
 const { connect } = require("./database/connection");
 
@@ -77,6 +78,8 @@ app.get("/api/v1/system/test/all", systemController.getAllTest);
 app.post("/api/v1/system/add/lab", systemController.postLab)
 app.post("/api/v1/system/test/add", systemController.postTest);
 
+app.post("/api/v1/system/lab/add", labAccountController.postLab)
+
 
 // 404 Not Found Handler
 app.use((req, res, next) => {
@@ -106,7 +109,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the Server
-app.listen(3001, async () => {
+app.listen(3000, async () => {
   console.log("Server is running");
   try {
     await connect();
