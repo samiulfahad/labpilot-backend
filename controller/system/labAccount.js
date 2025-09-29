@@ -11,8 +11,8 @@ const postLab = async (req, res, next) => {
     const systemId = 555
     const { labName, address, zone, subZone, email, contact1, contact2, activeStatus } = req.body;
     const lab = new Lab(labName, address, zone, subZone, contact1, contact2, email, activeStatus, systemId);
-    const result = await lab.save()
-    if (result) {
+    const success = await lab.save()
+    if (success) {
       return res.status(201).send({ success: true, msg: "Lab created" });
     } else {
       return res.status(400).send({ success: false });
