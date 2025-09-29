@@ -11,21 +11,19 @@ const handleError = (e, methodName) => {
 };
 
 class Lab {
-
-  constructor(labData, systemId) {
-    this.labName = labData.labName;
-    this.zone = labData.zone;
-    this.address = labData.address;
-    this.email = labData.email;
-    this.contact1 = labData.contact1;
-    this.contact2 = labData.contact2;
+  constructor(labName, address, zone, subZone, contact1, contact2, email, activeStatus, systemId) {
+    this.labName = labName;
+    this.address = address;
+    this.zone = zone;
+    this.subZone = subZone;
+    this.contact1 = contact1;
+    this.contact2 = contact2;
+    this.email = email;
     this.invoicePrice = 10;
     this.labIncentive = 4;
-    this.activeStatus =  labData.activeStatus ?? true;
+    this.activeStatus = activeStatus ?? true;
     this.hasWarning = false;
     this.warning = "";
-    this.hasNotification = false;
-    this.notification = [];
     this.totalReceipt = 0;
     this.payableAmount = 0;
     this.billingHistory = [];
@@ -35,7 +33,6 @@ class Lab {
     this.testList = [];
     this.createdBy = systemId
     this.createdAt = new Date();
-    this.updatedAt = new Date();
   }
 
 
@@ -61,24 +58,24 @@ class Lab {
       isRead: false,
       timestamp: new Date()
     };
-    
+
     this.notification.unshift(newNotification);
     this.hasNotification = true;
     this.updatedAt = new Date();
-    
+
     // Update in database
     const db = getClient();
     const result = await db.collection("labs").updateOne(
       { _id: new ObjectId(this._id) },
-      { 
+      {
         $push: { notification: { $each: [newNotification], $position: 0 } },
-        $set: { 
+        $set: {
           hasNotification: true,
           updatedAt: new Date()
         }
       }
     );
-    
+
     return result.modifiedCount === 1 ? newNotification : null;
   }
 
@@ -91,26 +88,26 @@ class Lab {
       totalReceipt: totalReceipt,
       dateAdded: new Date()
     };
-    
+
     this.billingHistory.unshift(billingRecord);
     this.updateTotalReceipt();
     this.calculatePayableAmount();
     this.updatedAt = new Date();
-    
+
     // Update in database
     const db = getClient();
     const result = await db.collection("labs").updateOne(
       { _id: new ObjectId(this._id) },
-      { 
+      {
         $push: { billingHistory: { $each: [billingRecord], $position: 0 } },
-        $set: { 
+        $set: {
           totalReceipt: this.totalReceipt,
           payableAmount: this.payableAmount,
           updatedAt: new Date()
         }
       }
     );
-    
+
     return result.modifiedCount === 1 ? billingRecord : null;
   }
 
@@ -190,7 +187,7 @@ class Lab {
       const db = getClient();
       const filter = { _id: new ObjectId(labId) };
       updateData.updatedAt = new Date();
-      
+
       const result = await db.collection("labs").updateOne(filter, { $set: updateData });
       return result.modifiedCount === 1;
     } catch (e) {
@@ -214,15 +211,15 @@ class Lab {
         joinDate: new Date(),
         isActive: true
       };
-      
+
       const result = await db.collection("labs").updateOne(
         { _id: new ObjectId(labId) },
-        { 
+        {
           $push: { staffs: staff },
           $set: { updatedAt: new Date() }
         }
       );
-      
+
       return result.modifiedCount === 1 ? staff : null;
     } catch (e) {
       return handleError(e, "addStaff");
@@ -238,18 +235,18 @@ class Lab {
         isRead: false,
         timestamp: new Date()
       };
-      
+
       const result = await db.collection("labs").updateOne(
         { _id: new ObjectId(labId) },
-        { 
+        {
           $push: { notification: { $each: [newNotification], $position: 0 } },
-          $set: { 
+          $set: {
             hasNotification: true,
             updatedAt: new Date()
           }
         }
       );
-      
+
       return result.modifiedCount === 1 ? newNotification : null;
     } catch (e) {
       return handleError(e, "addNotificationById");
@@ -260,33 +257,33 @@ class Lab {
   static async addBillingHistoryById(labId, month, totalInvoice) {
     try {
       const db = getClient();
-      
+
       // First get the lab to calculate values
       const lab = await this.findById(labId);
       if (!lab) return null;
-      
+
       const totalReceipt = totalInvoice * lab.invoicePrice;
       const payableAmount = Math.max(0, (lab.totalReceipt + totalReceipt) - lab.labIncentive);
-      
+
       const billingRecord = {
         month: month,
         totalInvoice: totalInvoice,
         totalReceipt: totalReceipt,
         dateAdded: new Date()
       };
-      
+
       const result = await db.collection("labs").updateOne(
         { _id: new ObjectId(labId) },
-        { 
+        {
           $push: { billingHistory: { $each: [billingRecord], $position: 0 } },
           $inc: { totalReceipt: totalReceipt },
-          $set: { 
+          $set: {
             payableAmount: payableAmount,
             updatedAt: new Date()
           }
         }
       );
-      
+
       return result.modifiedCount === 1 ? billingRecord : null;
     } catch (e) {
       return handleError(e, "addBillingHistoryById");
@@ -299,8 +296,8 @@ class Lab {
       const db = getClient();
       const result = await db.collection("labs").updateOne(
         { _id: new ObjectId(labId) },
-        { 
-          $set: { 
+        {
+          $set: {
             warning: warningMessage,
             hasWarning: true,
             updatedAt: new Date()
@@ -319,8 +316,8 @@ class Lab {
       const db = getClient();
       const result = await db.collection("labs").updateOne(
         { _id: new ObjectId(labId) },
-        { 
-          $set: { 
+        {
+          $set: {
             warning: "",
             hasWarning: false,
             updatedAt: new Date()
