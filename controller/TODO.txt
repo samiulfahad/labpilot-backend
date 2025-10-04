@@ -1,5 +1,6 @@
 Running Task 1
-Todo- While returning lab obj, remove sensitive data
+1. API for creating zone and sub zone
+2. API for editing 
 
 Task 1;
 Goal: Make lab registration and edit page working via admin front end and backend

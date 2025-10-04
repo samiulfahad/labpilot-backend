@@ -153,12 +153,13 @@ class Lab {
   static async find(field, value) {
 
     try {
+      const projection = { _id: 0, labName: 1, labId: 1, address: 1, email: 1, contact1: 1, contact2: 1 }
       const db = getClient();
-      const lab = await db.collection("labs").find({ [field]: value }).toArray();
+      const lab = await db.collection("labs").find({ [field]: value }).project(projection).toArray();
       if (lab.length > 0) {
         return lab
       } else {
-        return 0
+        return false
       }
     } catch (e) {
       return handleError(e, "find");  // This returns the result of handleError
@@ -168,11 +169,11 @@ class Lab {
 
   // Function 4: Find a lab
   static async findAll() {
-
     try {
+      const projection = { _id: 0, labName: 1, labId: 1, address: 1, email: 1, contact1: 1, contact2: 1 }
       const db = getClient();
-      const lab = await db.collection("labs").find({}).toArray();
-      return lab ? lab : 0
+      const lab = await db.collection("labs").find({}).project(projection).toArray();
+      return lab ? lab : false
     } catch (e) {
       return handleError(e, "find");  // This returns the result of handleError
     }
