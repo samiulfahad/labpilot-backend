@@ -168,39 +168,7 @@ class Zone {
         }
     }
 
-    // Function 7: Find all labs under a zone
-    static async findLabsByZone(zoneId) {
-        try {
-            const projection = { labName: 1, address: 1, contact1: 1, contact2: 1, email: 1, activeStatus: 1 }
-            const db = getClient();
-            const labs = await db.collection("labs").find({ zoneId: new ObjectId(zoneId) }).project(projection).toArray();
-            if (labs.length > 0) {
-                return labs
-            } else {
-                return false
-            }
-        } catch (e) {
-            return handleError(e, "findLabsByZone");
-        }
-    }
-
-    // Function 8: Find all labs under a sub zone
-    static async findLabsBySubZone(subZoneId) {
-        try {
-            const projection = { labName: 1, address: 1, contact1: 1, contact2: 1, email: 1, activeStatus: 1 }
-            const db = getClient();
-            const labs = await db.collection("labs").find({ subZoneId: new ObjectId(subZoneId) }).project(projection).toArray();
-            if (labs.length > 0) {
-                return labs
-            } else {
-                return false
-            }
-        } catch (e) {
-            return handleError(e, "findLabsBySubZone");
-        }
-    }
-
-    // Function 9: Get all zones with subzones (optional utility function)
+    // Function 7: Get all zones with subzones (optional utility function)
     static async getAllZones() {
         try {
             const db = getClient();

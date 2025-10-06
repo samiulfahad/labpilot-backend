@@ -1,5 +1,7 @@
 Running Task 1
-1. API Validation for ZONE routes
+1. TEST all zone and sub zone routes
+2. API Validation for ZONE and SUBZONE routes
+3. apply get lab by zoneId and subZoneId in Lab routes in server.js file
 
 Task 1;
 Goal: Make lab registration and edit page working via admin front end and backend

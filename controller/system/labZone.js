@@ -104,34 +104,7 @@ const deleteSubZone = async (req, res, next) => {
     }
 };
 
-// Lab endpoints by zone/subzone
-const getLabsByZoneId = async (req, res, next) => {
-    try {
-        const { zoneId } = req.body;
-        const labs = await Zone.findLabsByZone(zoneId);
-        if (labs && labs.length > 0) {
-            return res.status(200).send({ success: true, labs });
-        } else {
-            return res.status(200).send({ success: true, labs: [], msg: "No labs found in this zone" });
-        }
-    } catch (e) {
-        next(e);
-    }
-};
 
-const getLabsBySubZoneId = async (req, res, next) => {
-    try {
-        const { subZoneId } = req.body;
-        const labs = await Zone.findLabsBySubZone(subZoneId);
-        if (labs && labs.length > 0) {
-            return res.status(200).send({ success: true, labs });
-        } else {
-            return res.status(200).send({ success: true, labs: [], msg: "No labs found in this subzone" });
-        }
-    } catch (e) {
-        next(e);
-    }
-};
 
 
 module.exports = {
@@ -145,9 +118,5 @@ module.exports = {
     postSubZone,
     putSubZone,
     deleteSubZone,
-
-    // Lab endpoints by location
-    getLabsByZoneId,
-    getLabsBySubZoneId,
 
 };
