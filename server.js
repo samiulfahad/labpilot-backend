@@ -10,6 +10,7 @@ const invoiceController = require("./controller/invoice");
 const systemController = require("./controller/system");
 const labController = require("./controller/lab");
 const labAccountController = require('./controller/system/labAccount')
+const labZoneController = require('./controller/system/labZone')
 
 const { connect } = require("./database/connection");
 
@@ -76,6 +77,8 @@ app.get("/api/v1/lab/referrer/all", labController.getReferrerList);
 app.put("/api/v1/lab/test/update", labController.putTest);
 app.put("/api/v1/lab/testlist/update", labController.putTestList);
 
+
+
 // System Routes
 app.get("/api/v1/system/test/all", systemController.getAllTest);
 app.post("/api/v1/system/test/add", systemController.postTest);
@@ -95,6 +98,8 @@ app.get("/api/v1/system/lab/search",
   labAccountController.getLab
 )
 
+// Get a lab by zone 
+
 // List of all labs
 app.get("/api/v1/system/lab/all", labAccountController.getAllLabs)
 
@@ -111,6 +116,16 @@ app.delete("/api/v1/system/lab/delete",
   handleValidationErrors,
   labAccountController.deleteLab
 )
+
+// Lab Zone routes
+app.post("/api/v1/system/labzone/add", labZoneController.postZone)
+app.put("/api/v1/system/labzone/edit", labZoneController.putZone)
+app.delete("/api/v1/system/labzone/delete", labZoneController.deleteZone)
+app.get("/api/v1/system/labzone/all", labZoneController.getZones)
+// Lab Sub Zone routes
+app.post("/api/v1/system/labzone/subzone/add", labZoneController.postSubZone)
+app.put("/api/v1/system/labzone/subzone/edit", labZoneController.putSubZone)
+app.delete("/api/v1/system/labzone/subzone/delete", labZoneController.putSubZone)
 
 
 

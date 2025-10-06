@@ -1,6 +1,5 @@
 Running Task 1
-1. API for creating zone and sub zone
-2. API for editing 
+1. API Validation for ZONE routes
 
 Task 1;
 Goal: Make lab registration and edit page working via admin front end and backend
